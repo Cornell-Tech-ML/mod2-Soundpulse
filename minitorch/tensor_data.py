@@ -243,6 +243,9 @@ class TensorData:
         # TODO: Implement for Task 2.1.
         shape_out = tuple([self.shape[o] for o in order])
         strides_out = strides_from_shape(shape_out)
+        print("================")
+        print(self.shape, self.strides, order)
+        print(shape_out, strides_out)
             
         return TensorData(self._storage, shape_out, strides_out)
         #raise NotImplementedError("Need to implement for Task 2.1")
