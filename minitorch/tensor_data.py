@@ -126,10 +126,10 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
 
     if offset > 0:
         for i in range(offset):
-            _shape1.insert(0, 1)
+            _shape2.insert(0, 1)
     else:
         for i in range(-offset):
-            _shape2.insert(0, 1)
+            _shape1.insert(0, 1)
 
     for i in range(len(_shape1)):
         if _shape1[i] != _shape2[i]:
@@ -138,7 +138,7 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
             elif _shape2[i] == 1:
                 final_shape.append(_shape1[i])
             else:
-                raise IndexingError("It cannot brodcast.")
+                raise IndexingError("It cannot broadcast.")
         else:
             final_shape.append(_shape1[i])
 
