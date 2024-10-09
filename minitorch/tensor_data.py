@@ -119,24 +119,27 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
 
     """
-    while len(shape1) > len(shape2):
-        shape1.insert(0, 1)
+    _shape1 = list(shape1)
+    _shape2 = list(shape2)
+
+    while len(_shape1) > len(_shape2):
+        _shape1.insert(0, 1)
     
     while len(shape2) > len(shape1):
-        shape2.insert(0, 1)
+        _shape2.insert(0, 1)
 
     final_shape = []
 
-    for i in range(len(shape1)):
-        if shape1[i] != shape2[i]:
-            if shape1[i] == 1:
-                final_shape.append(shape2[i])
-            elif shape2[i] == 1:
-                final_shape.append(shape1[i])
+    for i in range(len(_shape1)):
+        if _shape1[i] != _shape2[i]:
+            if _shape1[i] == 1:
+                final_shape.append(_shape2[i])
+            elif _shape2[i] == 1:
+                final_shape.append(_shape1[i])
             else:
                 raise IndexingError("It cannot brodcast.")
         else:
-            final_shape.append(shape1[i])
+            final_shape.append(_shape1[i])
 
     return tuple(final_shape)
     # TODO: Implement for Task 2.2.
