@@ -61,9 +61,11 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # TODO: Implement for Task 2.1.
+    strides = strides_from_shape(shape)
+
     for i in reversed(range(len(shape))):
-        out_index[i] = ordinal % shape[i]
-        ordinal = ordinal / shape[i]
+        out_index[i] = ordinal % strides[i]
+        ordinal = ordinal / strides[i]
 
 
 def broadcast_index(
@@ -240,19 +242,7 @@ class TensorData:
 
         # TODO: Implement for Task 2.1.
         new_shape = [self._shape[o] for o in order]
-        new_strides = [1] * len(self.shape)
-
-        # remove the extra element
-        for idx, dim in enumerate(new_shape[:-1]):
-            new_strides[idx + 1] = new_strides[idx] * dim
-        
-        # reverse the stride to match repr
-        new_strides = new_strides[::-1]
-
-        print("==================")
-        print(self._shape, self._strides)
-        print(order)
-        print(new_shape, new_strides)
+        new_strides = strides_from_shape(new_shape)
             
         return TensorData(self._storage, tuple(new_shape), tuple(new_strides))
         #raise NotImplementedError("Need to implement for Task 2.1")
