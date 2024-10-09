@@ -121,14 +121,15 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     """
     _shape1 = list(shape1)
     _shape2 = list(shape2)
-
-    while len(_shape1) > len(_shape2):
-        _shape1.insert(0, 1)
-    
-    while len(shape2) > len(shape1):
-        _shape2.insert(0, 1)
-
+    offset = len(_shape1) - len(_shape2)
     final_shape = []
+
+    if offset > 0:
+        for i in range(offset):
+            _shape1.insert(0, 1)
+    else:
+        for i in range(-offset):
+            _shape2.insert(0, 1)
 
     for i in range(len(_shape1)):
         if _shape1[i] != _shape2[i]:
