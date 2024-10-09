@@ -45,7 +45,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
 
     """
     # TODO: Implement for Task 2.1.
-    return sum([idx * stride for idx, stride in zip(index, strides)])
+    print(zip(index, strides))
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -243,14 +243,15 @@ class TensorData:
         new_strides = [1] * len(self.shape)
 
         # remove the extra element
+        print(new_shape)
         for idx, dim in enumerate(new_shape[:-1]):
             new_strides[idx + 1] = new_strides[idx] * dim
         
+        print(new_strides)
         # reverse the stride to match repr
         new_strides = new_strides[::-1]
             
         return TensorData(self._storage, new_shape, new_strides)
-
         #raise NotImplementedError("Need to implement for Task 2.1")
 
     def to_string(self) -> str:
