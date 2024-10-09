@@ -46,6 +46,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
     """
     # TODO: Implement for Task 2.1.
     print(zip(index, strides))
+    return sum([idx * stride for idx, stride in zip(index, strides)])
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
