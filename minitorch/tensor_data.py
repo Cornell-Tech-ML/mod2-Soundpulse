@@ -61,7 +61,7 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # TODO: Implement for Task 2.1.
-    for i in reversed(range(len(shape))):
+    for i in range(len(shape)):
         out_index[i] = ordinal % shape[i]
         ordinal = ordinal / shape[i]
 
@@ -240,13 +240,14 @@ class TensorData:
 
         # TODO: Implement for Task 2.1.
         new_shape = [self._shape[o] for o in order]
-        new_strides = [1] * len(self.shape + 1)
+        new_strides = [1] * len(self.shape)
 
-        for idx, dim in enumerate(new_shape):
+        # remove the extra element
+        for idx, dim in enumerate(new_shape[:-1]):
             new_strides[idx + 1] = new_strides[idx] * dim
         
-        # remove the extra element and reverse the stride to match repr
-        new_strides = new_strides[:-1][::-1]
+        # reverse the stride to match repr
+        new_strides = new_strides[::-1]
             
         return TensorData(self._storage, new_shape, new_strides)
 
