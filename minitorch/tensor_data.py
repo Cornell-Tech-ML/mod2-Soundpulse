@@ -63,7 +63,7 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     # TODO: Implement for Task 2.1.
     strides = strides_from_shape(shape)
 
-    for i in reversed(range(len(shape))):
+    for i in range(len(shape)):
         out_index[i] = ordinal % strides[i]
         ordinal = ordinal / strides[i]
 
@@ -241,10 +241,10 @@ class TensorData:
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
         # TODO: Implement for Task 2.1.
-        new_shape = [self._shape[o] for o in order]
-        new_strides = strides_from_shape(new_shape)
+        shape_out = tuple([self._shape[o] for o in order])
+        strides_out = strides_from_shape(shape_out)
             
-        return TensorData(self._storage, tuple(new_shape), tuple(new_strides))
+        return TensorData(self._storage, shape_out, strides_out)
         #raise NotImplementedError("Need to implement for Task 2.1")
 
     def to_string(self) -> str:
