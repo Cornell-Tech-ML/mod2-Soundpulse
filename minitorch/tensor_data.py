@@ -64,8 +64,8 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     strides = strides_from_shape(shape)
 
     for i in range(len(shape)):
-        out_index[i] = ordinal % strides[i]
-        ordinal = ordinal / strides[i]
+        out_index[i] = ordinal // strides[i]
+        ordinal = ordinal % strides[i]
 
 
 def broadcast_index(
@@ -241,7 +241,7 @@ class TensorData:
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
         # TODO: Implement for Task 2.1.
-        shape_out = tuple([self._shape[o] for o in order])
+        shape_out = tuple([self.shape[o] for o in order])
         strides_out = strides_from_shape(shape_out)
             
         return TensorData(self._storage, shape_out, strides_out)
