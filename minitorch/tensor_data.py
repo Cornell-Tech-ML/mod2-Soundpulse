@@ -249,7 +249,7 @@ class TensorData:
         # reverse the stride to match repr
         new_strides = new_strides[::-1]
             
-        return TensorData(self._storage, new_shape, tuple(new_strides))
+        return TensorData(self._storage, tuple(new_shape), tuple(new_strides))
         #raise NotImplementedError("Need to implement for Task 2.1")
 
     def to_string(self) -> str:
