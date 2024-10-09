@@ -82,7 +82,7 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     order: List[Variable] = []
     seen = set()
 
-    def visit(var:Variable) -> None:
+    def visit(var: Variable) -> None:
         if var.unique_id in seen or var.is_constant():
             return
         if not var.is_leaf():
@@ -91,7 +91,7 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
                     visit(m)
         seen.add(var.unique_id)
         order.insert(0, var)
-    
+
     visit(variable)
     return order
 
@@ -124,6 +124,7 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
                     continue
                 derivatives.setdefault(v.unique_id, 0.0)
                 derivatives[v.unique_id] = derivatives[v.unique_id] + d
+
 
 @dataclass
 class Context:

@@ -101,7 +101,7 @@ class Scalar:
         return LT.apply(b, self)
 
     def __sub__(self, b: ScalarLike) -> Scalar:
-        return Add.apply(self, Neg.apply(b))
+        return Add.apply(self, -b)
 
     def __neg__(self) -> Scalar:
         return Neg.apply(self)
