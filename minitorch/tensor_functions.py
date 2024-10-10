@@ -94,7 +94,6 @@ class Add(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         return grad_output, grad_output
 
-
 class All(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
@@ -106,11 +105,49 @@ class All(Function):
 
 
 # TODO: Implement for Task 2.3.
+class Mul(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
+        """Forward pass for multiplication.
 
+        Args:
+        ----
+            ctx (Context): The context for saving values for backward pass.
+            t1 (Tensor): The first tensor to be multiplied.
+            t2 (Tensor): The second tensor to be multiplied.
+
+        Returns:
+        -------
+            Tensor: The result of element-wise multiplication of t1 and t2.
+
+        """
+        ctx.save_for_backward(t1, t2)
+        return t1.f.mul_zip(t1, t2)
+
+    @staticmethod
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Backward pass for multiplication.
+
+        Args:
+        ----
+            ctx (Context): The context containing saved tensors from the forward pass.
+            grad_output (Tensor): The gradient of the loss with respect to the output of the forward pass.
+
+        Returns:
+        -------
+            Tuple[Tensor, Tensor]: A tuple containing the gradients with respect to t1 and t2.
+
+        """
+        t1, t2 = ctx.saved_values
+        return (
+            grad_output.f.mul_zip(grad_output, t2),
+            grad_output.f.mul_zip(grad_output, t1)
+        )
 
 class View(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, shape: Tensor) -> Tensor:
+        """Reshape the tensor to the given shape."""
         ctx.save_for_backward(a.shape)
         assert a._tensor.is_contiguous(), "Must be contiguous to view"
         shape2 = [int(shape[i]) for i in range(shape.size)]
