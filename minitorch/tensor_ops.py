@@ -196,6 +196,7 @@ class SimpleOps(TensorOps):
             fn: function from two floats-to-float to apply
             a (:class:`TensorData`): tensor to reduce over
             dim (int): int of dim to reduce
+            start (float, optional): Starting value for reduction. Defaults to 0.0.
 
         Returns:
             :class:`TensorData` : new tensor
@@ -261,8 +262,25 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
+        
+        out_shape = shape_broadcast(in_shape, out_shape)
+
+        for ordinal in range(len(out)):
+            
+            out_index = [0] * len(out_shape)
+            respective_in_index = [0] * len(in_shape)
+
+            to_index(ordinal, out_shape, out_index)
+
+            broadcast_index(out_index, out_shape, in_shape, respective_in_index)
+            respective_in_data = in_storage[index_to_position(respective_in_index, in_strides)]
+
+            respective_out_ordinal = index_to_position(out_index, out_strides)
+
+            out[respective_out_ordinal] = fn(respective_in_data)
+
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        #raise NotImplementedError("Need to implement for Task 2.3")
 
     return _map
 
@@ -306,8 +324,11 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
+        
+        for ordinal, data in enumerate(zip(a_storage, b_storage)):
+            out[ordinal] = fn(data[0], data[1])
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        #raise NotImplementedError("Need to implement for Task 2.3")
 
     return _zip
 
@@ -337,6 +358,7 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
+        
         # TODO: Implement for Task 2.3.
         raise NotImplementedError("Need to implement for Task 2.3")
 
