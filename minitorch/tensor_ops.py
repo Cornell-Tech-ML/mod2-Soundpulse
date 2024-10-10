@@ -263,6 +263,7 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
         
+        print(out_shape, out_strides, in_shape, in_strides)
         out_shape = shape_broadcast(in_shape, out_shape)
 
         for ordinal in range(len(out)):
