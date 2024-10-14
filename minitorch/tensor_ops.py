@@ -333,9 +333,11 @@ def tensor_zip(
             broadcast_index(out_index, out_shape, a_shape, a_index)
             broadcast_index(out_index, out_shape, b_shape, b_index)
             
-            a_data = a_storage[index_to_position(a_index, a_strides)]
+            if isinstance(b_storage, (int, float)):
+                a_data = a_storage
+            else:
+                a_data = a_storage[index_to_position(a_index, a_strides)]
             
-            # Handle the case where b is a scalar (int or float)
             if isinstance(b_storage, (int, float)):
                 b_data = b_storage
             else:
