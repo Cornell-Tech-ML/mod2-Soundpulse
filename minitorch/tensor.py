@@ -294,27 +294,27 @@ class Tensor:
     # TODO: Implement for Task 2.3.
     def add(self, b:TensorLike) -> Tensor:
         """Element-wise addition."""
-        return Add.apply(self, b)
+        return Add.apply(self, self._ensure_tensor(b))
 
     def sub(self, b: TensorLike) -> Tensor:
         """Element-wise subtraction."""
-        return Add.apply(self, Neg.apply(b))
+        return Add.apply(self, Neg.apply(self._ensure_tensor(b)))
 
     def mul(self, b: TensorLike) -> Tensor:
         """Element-wise multiplication."""
-        return Mul.apply(self, b)
+        return Mul.apply(self, self._ensure_tensor(b))
 
     def lt(self, b: TensorLike) -> Tensor:
         """Element-wise less than comparison."""
-        return LT.apply(self, b)
+        return LT.apply(self, self._ensure_tensor(b))
 
     def eq(self, b: TensorLike) -> Tensor:
         """Element-wise equality comparison."""
-        return EQ.apply(self, b)
+        return EQ.apply(self, self._ensure_tensor(b))
 
     def gt(self, b: TensorLike) -> Tensor:
         """Element-wise greater than comparison."""
-        return LT.apply(b, self)
+        return LT.apply(self._ensure_tensor(b), self)
 
     def neg(self) -> Tensor:
         """Element-wise negation."""
@@ -322,15 +322,15 @@ class Tensor:
 
     def radd(self, b: TensorLike) -> Tensor:
         """Reverse element-wise addition."""
-        return Add.apply(b, self)
+        return Add.apply(self._ensure_tensor(b), self)
 
     def rmul(self, b: TensorLike) -> Tensor:
         """Reverse element-wise multiplication."""
-        return Mul.apply(b, self)
+        return Mul.apply(self._ensure_tensor(b), self)
 
     def is_close(self, b: TensorLike) -> Tensor:
         """Element-wise comparison for near equality."""
-        return IsClose.apply(self, b)
+        return IsClose.apply(self, self._ensure_tensor(b))
 
     def sigmoid(self) -> Tensor:
         """Element-wise sigmoid function."""
