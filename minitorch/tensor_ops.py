@@ -41,7 +41,7 @@ class TensorOps:
     @staticmethod
     def reduce(
         fn: Callable[[float, float], float], start: float = 0.0
-    ) -> Callable[[Tensor, int], Tensor]: 
+    ) -> Callable[[Tensor, int], Tensor]:
         """Reduce Placeholder"""
         ...
 
@@ -264,13 +264,13 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        
+
     # Assume out_shape is already the brodcasted shape
         for ordinal in range(out.size):
-            out_index = [0] * len(out_shape)
+            in_index: Index = np.array([0] * len(in_shape), dtype=np.int32)
+            out_index: Index = np.array([0] * len(out_shape), dtype=np.int32)
+
             to_index(ordinal, out_shape, out_index)
-            
-            in_index = [0] * len(in_shape)
             broadcast_index(out_index, out_shape, in_shape, in_index)
             in_data = in_storage[index_to_position(in_index, in_strides)]
 
@@ -321,22 +321,26 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        
-        # Assume out_shape is already the broadcasted shape
+
+        print(a_shape, a_strides, b_shape, b_strides, out_shape, out_strides)
+
+        # Assume out_shape is already the brodcasted shape
         for ordinal in range(out.size):
-            out_index = [0] * len(out_shape)
+            a_index: Index = np.array([0] * len(a_shape), dtype=np.int32)
+            b_index: Index = np.array([0] * len(b_shape), dtype=np.int32)
+            out_index: Index = np.array([0] * len(out_shape), dtype=np.int32)
+
             to_index(ordinal, out_shape, out_index)
-            
-            a_index = [0] * len(a_shape)
-            b_index = [0] * len(b_shape)
 
             broadcast_index(out_index, out_shape, a_shape, a_index)
             broadcast_index(out_index, out_shape, b_shape, b_index)
-            
             a_data = a_storage[index_to_position(a_index, a_strides)]
             b_data = b_storage[index_to_position(b_index, b_strides)]
 
             out[ordinal] = fn(a_data, b_data)
+
+        # TODO: Implement for Task 2.3.
+        #raise NotImplementedError("Need to implement for Task 2.3")
 
     return _zip
 
@@ -371,7 +375,7 @@ def tensor_reduce(
 
         for ordinal in range(out.size):
 
-            out_index = [0] * len(out_shape)
+            out_index: Index = np.array([0] * len(out_shape), dtype=np.int32)
             to_index(ordinal, out_shape, out_index)
 
             a_index = out_index.copy()
@@ -384,7 +388,7 @@ def tensor_reduce(
                 accumulator = fn(accumulator, a_storage[a_ordinal])
 
             out[ordinal] = accumulator
-            
+
         # TODO: Implement for Task 2.3.
         # raise NotImplementedError("Need to implement for Task 2.3")
 

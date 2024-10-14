@@ -197,6 +197,7 @@ class Tensor:
 
     def zeros(self, shape: Optional[UserShape] = None) -> Tensor:
         """Create a tensor filled with zeros."""
+
         def zero(shape: UserShape) -> Tensor:
             return Tensor.make(
                 [0.0] * int(operators.prod(shape)), shape, backend=self.backend
@@ -292,7 +293,7 @@ class Tensor:
 
     # Functions
     # TODO: Implement for Task 2.3.
-    def add(self, b:TensorLike) -> Tensor:
+    def add(self, b: TensorLike) -> Tensor:
         """Element-wise addition."""
         return Add.apply(self, self._ensure_tensor(b))
 
@@ -354,7 +355,7 @@ class Tensor:
             return All.apply(self, dim)
         else:
             return All.apply(self, Tensor.make([dim], (1,), backend=self.backend))
-    
+
     def sum(self, dim: Optional[int] = None) -> Tensor:
         """Compute the sum along the specified dimension."""
         if dim is None:
@@ -364,7 +365,11 @@ class Tensor:
 
     def mean(self, dim: Optional[int] = None) -> Tensor:
         """Compute the mean along the specified dimension."""
-        return self.sum(dim) / self.shape[dim] if dim is not None else self.sum() / self.size
+        return (
+            self.sum(dim) / self.shape[dim]
+            if dim is not None
+            else self.sum() / self.size
+        )
 
     def permute(self, *dims: int) -> Tensor:
         """Permute the dimensions of the tensor."""
@@ -373,7 +378,7 @@ class Tensor:
     def view(self, *shape: int) -> Tensor:
         """Reshape the tensor to the specified shape."""
         return View.apply(self, tensor(shape))
-    
+
     def zero_grad_(self) -> None:
         """Resets the gradient to zero."""
         self.grad = Tensor.make(

@@ -100,6 +100,7 @@ class Add(Function):
         """Computes the gradient for the addition operation."""
         return grad_output, grad_output
 
+
 class All(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
@@ -147,29 +148,33 @@ class Mul(Function):
         t1, t2 = ctx.saved_values
         return (
             grad_output.f.mul_zip(grad_output, t2),
-            grad_output.f.mul_zip(grad_output, t1)
+            grad_output.f.mul_zip(grad_output, t1),
         )
-    
+
+
 class Sigmoid(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         """Computes the element-wise Sigmoid of the input tensor."""
         ctx.save_for_backward(t1)
         return t1.f.sigmoid_map(t1)
-    
+
+
 class ReLU(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         """Computes the element-wise ReLU of the input tensor."""
         ctx.save_for_backward(t1)
         return t1.f.relu_map(t1)
-    
+
+
 class Log(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         """Computes the element-wise inverse of the input tensor."""
         ctx.save_for_backward(t1)
         return t1.f.log_map(t1)
+
 
 class Exp(Function):
     @staticmethod
@@ -178,12 +183,14 @@ class Exp(Function):
         ctx.save_for_backward(t1)
         return t1.f.exp_map(t1)
 
+
 class Sum(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, dim: int) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
         ctx.save_for_backward(t1, dim)
         return t1.f.add_reduce(t1, dim)
+
 
 class LT(Function):
     @staticmethod
@@ -192,6 +199,7 @@ class LT(Function):
         ctx.save_for_backward(t1, t2)
         return t1.f.lt_zip(t1, t2)
 
+
 class EQ(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
@@ -199,19 +207,20 @@ class EQ(Function):
         ctx.save_for_backward(t1, t2)
         return t1.f.eq_zip(t1, t2)
 
+
 class IsClose(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
         """Computes the element-wise 'is close' comparison of two input tensors."""
         return t1.f.is_close_zip(t1, t2)
 
+
 class Permute(Function):
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, dim:int) -> Tensor:
+    def forward(ctx: Context, t1: Tensor, dim: int) -> Tensor:
         """Permutes the dimensions of the input tensor."""
         ctx.save_for_backward(t1, dim)
         return t1._tensor.permute(*dim)
-
 
 
 class View(Function):
@@ -270,8 +279,6 @@ class MatMul(Function):
             grad_output.f.matrix_multiply(grad_output, transpose(t2)),
             grad_output.f.matrix_multiply(transpose(t1), grad_output),
         )
-
-
 
 
 # Helpers for Constructing tensors
@@ -391,6 +398,7 @@ def grad_central_difference(
     delta: Tensor = f(*vals1).sum() - f(*vals2).sum()
 
     return delta[0] / (2.0 * epsilon)
+
 
 def grad_check(f: Any, *vals: Tensor) -> None:
     """Check whether autodiff matches central difference."""
