@@ -333,15 +333,8 @@ def tensor_zip(
             broadcast_index(out_index, out_shape, a_shape, a_index)
             broadcast_index(out_index, out_shape, b_shape, b_index)
             
-            if isinstance(b_storage, (int, float)):
-                a_data = a_storage
-            else:
-                a_data = a_storage[index_to_position(a_index, a_strides)]
-            
-            if isinstance(b_storage, (int, float)):
-                b_data = b_storage
-            else:
-                b_data = b_storage[index_to_position(b_index, b_strides)]
+            a_data = a_storage[index_to_position(a_index, a_strides)]
+            b_data = b_storage[index_to_position(b_index, b_strides)]
 
             out[ordinal] = fn(a_data, b_data)
 

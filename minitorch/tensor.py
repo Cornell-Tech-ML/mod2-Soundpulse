@@ -95,9 +95,11 @@ class Tensor:
         self.f = backend
 
     def requires_grad_(self, x: bool) -> None:
+        """Sets requires_grad flag for the tensor."""
         self.history = History()
 
     def requires_grad(self) -> bool:
+        """Checks if the tensor requires gradient computation."""
         return self.history is not None
 
     def to_numpy(self) -> npt.NDArray[np.float64]:
@@ -290,27 +292,27 @@ class Tensor:
 
     # Functions
     # TODO: Implement for Task 2.3.
-    def add(self, b:Tensor) -> Tensor:
+    def add(self, b:TensorLike) -> Tensor:
         """Element-wise addition."""
         return Add.apply(self, b)
 
-    def sub(self, b: Tensor) -> Tensor:
+    def sub(self, b: TensorLike) -> Tensor:
         """Element-wise subtraction."""
         return Add.apply(self, Neg.apply(b))
 
-    def mul(self, b: Tensor) -> Tensor:
+    def mul(self, b: TensorLike) -> Tensor:
         """Element-wise multiplication."""
         return Mul.apply(self, b)
 
-    def lt(self, b: Tensor) -> Tensor:
+    def lt(self, b: TensorLike) -> Tensor:
         """Element-wise less than comparison."""
         return LT.apply(self, b)
 
-    def eq(self, b: Tensor) -> Tensor:
+    def eq(self, b: TensorLike) -> Tensor:
         """Element-wise equality comparison."""
         return EQ.apply(self, b)
 
-    def gt(self, b: Tensor) -> Tensor:
+    def gt(self, b: TensorLike) -> Tensor:
         """Element-wise greater than comparison."""
         return LT.apply(b, self)
 
@@ -318,15 +320,15 @@ class Tensor:
         """Element-wise negation."""
         return Neg.apply(self)
 
-    def radd(self, b: Tensor) -> Tensor:
+    def radd(self, b: TensorLike) -> Tensor:
         """Reverse element-wise addition."""
         return Add.apply(b, self)
 
-    def rmul(self, b: Tensor) -> Tensor:
+    def rmul(self, b: TensorLike) -> Tensor:
         """Reverse element-wise multiplication."""
         return Mul.apply(b, self)
 
-    def is_close(self, b: Tensor) -> Tensor:
+    def is_close(self, b: TensorLike) -> Tensor:
         """Element-wise comparison for near equality."""
         return IsClose.apply(self, b)
 
@@ -348,11 +350,17 @@ class Tensor:
 
     def all(self, dim: Optional[int] = None) -> Tensor:
         """Returns True if all elements are True."""
-        return All.apply(self, dim)
+        if dim is None:
+            return All.apply(self, dim)
+        else:
+            return All.apply(self, Tensor.make([dim], (1,), backend=self.backend))
     
     def sum(self, dim: Optional[int] = None) -> Tensor:
         """Compute the sum along the specified dimension."""
-        return Sum.apply(self, dim)
+        if dim is None:
+            return Sum.apply(self)
+        else:
+            return Sum.apply(self, Tensor.make([dim], (1,), backend=self.backend))
 
     def mean(self, dim: Optional[int] = None) -> Tensor:
         """Compute the mean along the specified dimension."""
