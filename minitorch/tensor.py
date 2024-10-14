@@ -371,9 +371,12 @@ class Tensor:
             else self.sum() / self.size
         )
 
-    def permute(self, *dims: int) -> Tensor:
+    def permute(self, dim: Optional[int] = None) -> Tensor:
         """Permute the dimensions of the tensor."""
-        return Permute.apply(self, dims)
+        if dim is None:
+            return self
+        else:
+            return Permute.apply(self, dim)
 
     def view(self, *shape: int) -> Tensor:
         """Reshape the tensor to the specified shape."""
