@@ -298,47 +298,47 @@ class Tensor:
     def size(self) -> int:
         """Returns the total number of elements in the tensor."""
         return self._tensor.size
-    
+
     @property
     def dims(self) -> int:
         """Returns the number of dimensions of the tensor."""
         return self._tensor.dims
 
-    def add(self, b: TensorLike) -> Tensor:
+    def __add__(self, b: TensorLike) -> Tensor:
         """Element-wise addition."""
         return Add.apply(self, self._ensure_tensor(b))
 
-    def sub(self, b: TensorLike) -> Tensor:
+    def __sub__(self, b: TensorLike) -> Tensor:
         """Element-wise subtraction."""
         return Add.apply(self, Neg.apply(self._ensure_tensor(b)))
 
-    def mul(self, b: TensorLike) -> Tensor:
+    def __mul__(self, b: TensorLike) -> Tensor:
         """Element-wise multiplication."""
         return Mul.apply(self, self._ensure_tensor(b))
 
-    def lt(self, b: TensorLike) -> Tensor:
+    def __lt__(self, b: TensorLike) -> Tensor:
         """Element-wise less than comparison."""
         return LT.apply(self, self._ensure_tensor(b))
 
-    def eq(self, b: TensorLike) -> Tensor:
+    def __eq__(self, b: TensorLike) -> Tensor:
         """Element-wise equality comparison."""
         return EQ.apply(self, self._ensure_tensor(b))
 
-    def gt(self, b: TensorLike) -> Tensor:
+    def __gt__(self, b: TensorLike) -> Tensor:
         """Element-wise greater than comparison."""
         return LT.apply(self._ensure_tensor(b), self)
 
-    def neg(self) -> Tensor:
+    def __neg__(self) -> Tensor:
         """Element-wise negation."""
         return Neg.apply(self)
 
-    def radd(self, b: TensorLike) -> Tensor:
+    def __radd__(self, b: TensorLike) -> Tensor:
         """Reverse element-wise addition."""
-        return Add.apply(self._ensure_tensor(b), self)
+        return self + b
 
-    def rmul(self, b: TensorLike) -> Tensor:
+    def __rmul__(self, b: TensorLike) -> Tensor:
         """Reverse element-wise multiplication."""
-        return Mul.apply(self._ensure_tensor(b), self)
+        return self * b
 
     def is_close(self, b: TensorLike) -> Tensor:
         """Element-wise comparison for near equality."""
@@ -376,18 +376,14 @@ class Tensor:
 
     def mean(self, dim: Optional[int] = None) -> Tensor:
         """Compute the mean along the specified dimension."""
-        return (
-            self.sum(dim) / self.shape[dim]
-            if dim is not None
-            else self.sum() / self.size
-        )
-
-    def permute(self, dim: Optional[int] = None) -> Tensor:
-        """Permute the dimensions of the tensor."""
-        if dim is None:
-            return self
+        if dim is not None:
+            return self.sum(dim) / self.shape[dim]
         else:
-            return Permute.apply(self, dim)
+            return self.sum() / self.size
+
+    def permute(self, *dims: int) -> Tensor:
+        """Permute the dimensions of the tensor."""
+        return Permute.apply(self, *dims)
 
     def view(self, *shape: int) -> Tensor:
         """Reshape the tensor to the specified shape."""

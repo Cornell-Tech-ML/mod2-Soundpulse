@@ -265,11 +265,6 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
 
-    # Assume out_shape is already the brodcasted shape
-        print(out_shape, in_shape)
-        print(in_storage)
-        print(out)
-        print('======================')
         for ordinal in range(out.size):
             in_index: Index = np.array([0] * len(in_shape), dtype=np.int32)
             out_index: Index = np.array([0] * len(out_shape), dtype=np.int32)
@@ -325,9 +320,7 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-
-        print(a_shape, a_strides, b_shape, b_strides, out_shape, out_strides)
-
+        
         # Assume out_shape is already the brodcasted shape
         for ordinal in range(out.size):
             a_index: Index = np.array([0] * len(a_shape), dtype=np.int32)

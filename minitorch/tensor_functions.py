@@ -14,7 +14,7 @@ from .autodiff import Context
 from .tensor_ops import SimpleBackend, TensorBackend
 
 if TYPE_CHECKING:
-    from typing import Any, List, Tuple
+    from typing import Any, List, Tuple, Optional
 
     from .tensor import Tensor
     from .tensor_data import UserIndex, UserShape
@@ -186,11 +186,13 @@ class Exp(Function):
 
 class Sum(Function):
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, dim: int) -> Tensor:
+    def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
-        ctx.save_for_backward(t1, dim)
-        return t1.f.add_reduce(t1, dim)
-
+        if dim is None:
+            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
+        else:
+            return a.f.add_reduce(a, int(dim.item()))
+        
 
 class LT(Function):
     @staticmethod
@@ -217,10 +219,10 @@ class IsClose(Function):
 
 class Permute(Function):
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, dim: int) -> Tensor:
+    def forward(ctx: Context, t1: Tensor, *dims: int) -> Tensor:
         """Permutes the dimensions of the input tensor."""
-        ctx.save_for_backward(t1, dim)
-        return t1._tensor_data.permute(*dim)
+        ctx.save_for_backward(dims)
+        return t1._tensor.permute(*dims)
 
 
 class View(Function):
