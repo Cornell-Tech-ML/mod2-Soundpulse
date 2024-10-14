@@ -267,10 +267,10 @@ def tensor_map(
         
     # Assume out_shape is already the brodcasted shape
         for ordinal in range(out.size):
-            out_index = [0] * out_shape.shape[0]
+            out_index = [0] * len(out_shape)
             to_index(ordinal, out_shape, out_index)
             
-            in_index = [0] * in_shape.shape[0]
+            in_index = [0] * len(in_shape)
             broadcast_index(out_index, out_shape, in_shape, in_index)
             in_data = in_storage[index_to_position(in_index, in_strides)]
 
@@ -322,26 +322,26 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
         
-        print(a_shape, a_strides, b_shape, b_strides, out_shape, out_strides)
-
-        # Assume out_shape is already the brodcasted shape
+        # Assume out_shape is already the broadcasted shape
         for ordinal in range(out.size):
-            out_index = [0] * out_shape.shape[0]
+            out_index = [0] * len(out_shape)
             to_index(ordinal, out_shape, out_index)
             
-
-            a_index = [0] * a_shape.shape[0]
-            b_index = [0] * b_shape.shape[0]
+            a_index = [0] * len(a_shape)
+            b_index = [0] * len(b_shape)
 
             broadcast_index(out_index, out_shape, a_shape, a_index)
             broadcast_index(out_index, out_shape, b_shape, b_index)
+            
             a_data = a_storage[index_to_position(a_index, a_strides)]
-            b_data = b_storage[index_to_position(b_index, b_strides)]
+            
+            # Handle the case where b is a scalar (int or float)
+            if isinstance(b_storage, (int, float)):
+                b_data = b_storage
+            else:
+                b_data = b_storage[index_to_position(b_index, b_strides)]
 
             out[ordinal] = fn(a_data, b_data)
-
-        # TODO: Implement for Task 2.3.
-        #raise NotImplementedError("Need to implement for Task 2.3")
 
     return _zip
 
