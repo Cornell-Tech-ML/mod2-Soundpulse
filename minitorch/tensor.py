@@ -293,6 +293,17 @@ class Tensor:
 
     # Functions
     # TODO: Implement for Task 2.3.
+
+    @property
+    def size(self) -> int:
+        """Returns the total number of elements in the tensor."""
+        return self._tensor.size
+    
+    @property
+    def dims(self) -> int:
+        """Returns the number of dimensions of the tensor."""
+        return self._tensor.dims
+
     def add(self, b: TensorLike) -> Tensor:
         """Element-wise addition."""
         return Add.apply(self, self._ensure_tensor(b))
@@ -383,9 +394,5 @@ class Tensor:
         return View.apply(self, tensor(shape))
 
     def zero_grad_(self) -> None:
-        """Resets the gradient to zero."""
-        self.grad = Tensor.make(
-            [0.0] * int(operators.prod(self.shape)),
-            self.shape,
-            backend=self.backend,
-        )
+        """Resets the gradient to None."""
+        self.grad = None
