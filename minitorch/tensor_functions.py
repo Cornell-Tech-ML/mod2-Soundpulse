@@ -103,7 +103,7 @@ class Add(Function):
 
 class All(Function):
     @staticmethod
-    def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
+    def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Return 1 if all are true"""
         if dim is not None:
             return a.f.mul_reduce(a, int(dim.item()))
@@ -222,8 +222,9 @@ class Permute(Function):
     def forward(ctx: Context, t1: Tensor, *dims: int) -> Tensor:
         """Permutes the dimensions of the input tensor."""
         ctx.save_for_backward(dims)
-        return t1._tensor.permute(*dims)
 
+        return t1._tensor.permute(*dims)
+    
 
 class View(Function):
     @staticmethod
