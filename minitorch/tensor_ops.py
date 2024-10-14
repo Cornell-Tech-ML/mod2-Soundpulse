@@ -41,7 +41,9 @@ class TensorOps:
     @staticmethod
     def reduce(
         fn: Callable[[float, float], float], start: float = 0.0
-    ) -> Callable[[Tensor, int], Tensor]: ...
+    ) -> Callable[[Tensor, int], Tensor]: 
+        """Reduce Placeholder"""
+        ...
 
     @staticmethod
     def matrix_multiply(a: Tensor, b: Tensor) -> Tensor:
@@ -263,22 +265,16 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
         
-        print(out_shape, out_strides, in_shape, in_strides)
-        out_shape = shape_broadcast(in_shape, out_shape)
-
-        for ordinal in range(len(out)):
-            
-            out_index = [0] * len(out_shape)
-            respective_in_index = [0] * len(in_shape)
-
+    # Assume out_shape is already the brodcasted shape
+        for ordinal in range(out.size):
+            out_index = [0] * out_shape.shape[0]
             to_index(ordinal, out_shape, out_index)
+            
+            in_index = [0] * in_shape.shape[0]
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            in_data = in_storage[index_to_position(in_index, in_strides)]
 
-            broadcast_index(out_index, out_shape, in_shape, respective_in_index)
-            respective_in_data = in_storage[index_to_position(respective_in_index, in_strides)]
-
-            respective_out_ordinal = index_to_position(out_index, out_strides)
-
-            out[respective_out_ordinal] = fn(respective_in_data)
+            out[ordinal] = fn(in_data)
 
         # TODO: Implement for Task 2.3.
         #raise NotImplementedError("Need to implement for Task 2.3")
@@ -326,8 +322,24 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
         
-        for ordinal, data in enumerate(zip(a_storage, b_storage)):
-            out[ordinal] = fn(data[0], data[1])
+        print(a_shape, a_strides, b_shape, b_strides, out_shape, out_strides)
+
+        # Assume out_shape is already the brodcasted shape
+        for ordinal in range(out.size):
+            out_index = [0] * out_shape.shape[0]
+            to_index(ordinal, out_shape, out_index)
+            
+
+            a_index = [0] * a_shape.shape[0]
+            b_index = [0] * b_shape.shape[0]
+
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            a_data = a_storage[index_to_position(a_index, a_strides)]
+            b_data = b_storage[index_to_position(b_index, b_strides)]
+
+            out[ordinal] = fn(a_data, b_data)
+
         # TODO: Implement for Task 2.3.
         #raise NotImplementedError("Need to implement for Task 2.3")
 
@@ -359,9 +371,27 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        
+
+        reduce_size = a_shape[reduce_dim]
+
+        for ordinal in range(out.size):
+
+            out_index = [0] * len(out_shape)
+            to_index(ordinal, out_shape, out_index)
+
+            a_index = out_index.copy()
+            a_index[reduce_dim] = 0
+            accumulator = a_storage[index_to_position(a_index, a_strides)]
+
+            for i in range(1, reduce_size):
+                a_index[reduce_dim] = i
+                a_ordinal = index_to_position(a_index, a_strides)
+                accumulator = fn(accumulator, a_storage[a_ordinal])
+
+            out[ordinal] = accumulator
+            
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        # raise NotImplementedError("Need to implement for Task 2.3")
 
     return _reduce
 

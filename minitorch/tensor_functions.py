@@ -66,21 +66,25 @@ class Function:
 class Neg(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Applies negation to the input tensor."""
         return t1.f.neg_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+        """Computes gradient for negation operation."""
         return grad_output.f.neg_map(grad_output)
 
 
 class Inv(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Computes the element-wise inverse of the input tensor."""
         ctx.save_for_backward(t1)
         return t1.f.inv_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+        """Computes the gradient for the inverse operation."""
         (t1,) = ctx.saved_values
         return grad_output.f.inv_back_zip(t1, grad_output)
 
@@ -88,10 +92,12 @@ class Inv(Function):
 class Add(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
+        """Performs element-wise addition of two tensors."""
         return t1.f.add_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Computes the gradient for the addition operation."""
         return grad_output, grad_output
 
 class All(Function):
@@ -143,6 +149,70 @@ class Mul(Function):
             grad_output.f.mul_zip(grad_output, t2),
             grad_output.f.mul_zip(grad_output, t1)
         )
+    
+class Sigmoid(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Computes the element-wise Sigmoid of the input tensor."""
+        ctx.save_for_backward(t1)
+        return t1.f.sigmoid_map(t1)
+    
+class ReLU(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Computes the element-wise ReLU of the input tensor."""
+        ctx.save_for_backward(t1)
+        return t1.f.relu_map(t1)
+    
+class Log(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Computes the element-wise inverse of the input tensor."""
+        ctx.save_for_backward(t1)
+        return t1.f.log_map(t1)
+
+class Exp(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor) -> Tensor:
+        """Computes the element-wise exponential of the input tensor."""
+        ctx.save_for_backward(t1)
+        return t1.f.exp_map(t1)
+
+class Sum(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor, dim: int) -> Tensor:
+        """Computes the sum of the input tensor along the specified dimension."""
+        ctx.save_for_backward(t1, dim)
+        return t1.f.add_reduce(t1, dim)
+
+class LT(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
+        """Computes the element-wise less than comparison of two input tensors."""
+        ctx.save_for_backward(t1, t2)
+        return t1.f.lt_zip(t1, t2)
+
+class EQ(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
+        """Computes the element-wise equality comparison of two input tensors."""
+        ctx.save_for_backward(t1, t2)
+        return t1.f.eq_zip(t1, t2)
+
+class IsClose(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
+        """Computes the element-wise 'is close' comparison of two input tensors."""
+        return t1.f.is_close_zip(t1, t2)
+
+class Permute(Function):
+    @staticmethod
+    def forward(ctx: Context, t1: Tensor, dim:int) -> Tensor:
+        """Permutes the dimensions of the input tensor."""
+        ctx.save_for_backward(t1, dim)
+        return t1._tensor.permute(*dim)
+
+
 
 class View(Function):
     @staticmethod
@@ -200,6 +270,8 @@ class MatMul(Function):
             grad_output.f.matrix_multiply(grad_output, transpose(t2)),
             grad_output.f.matrix_multiply(transpose(t1), grad_output),
         )
+
+
 
 
 # Helpers for Constructing tensors
@@ -310,6 +382,7 @@ def tensor(
 def grad_central_difference(
     f: Any, *vals: Tensor, arg: int = 0, epsilon: float = 1e-6, ind: UserIndex
 ) -> float:
+    """Compute central difference approximation of the gradient."""
     x = vals[arg]
     up = zeros(x.shape)
     up[ind] = epsilon
@@ -318,7 +391,6 @@ def grad_central_difference(
     delta: Tensor = f(*vals1).sum() - f(*vals2).sum()
 
     return delta[0] / (2.0 * epsilon)
-
 
 def grad_check(f: Any, *vals: Tensor) -> None:
     """Check whether autodiff matches central difference."""

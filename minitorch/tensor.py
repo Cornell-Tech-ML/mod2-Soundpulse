@@ -194,6 +194,7 @@ class Tensor:
         # END CODE CHANGE (2021)
 
     def zeros(self, shape: Optional[UserShape] = None) -> Tensor:
+        """Create a tensor filled with zeros."""
         def zero(shape: UserShape) -> Tensor:
             return Tensor.make(
                 [0.0] * int(operators.prod(shape)), shape, backend=self.backend
@@ -239,14 +240,17 @@ class Tensor:
         return self.history is not None and self.history.last_fn is None
 
     def is_constant(self) -> bool:
+        """Check if tensor is constant."""
         return self.history is None
 
     @property
     def parents(self) -> Iterable[Variable]:
+        """Get parent variables."""
         assert self.history is not None
         return self.history.inputs
 
     def chain_rule(self, d_output: Any) -> Iterable[Tuple[Variable, Any]]:
+        """Apply chain rule to compute gradients."""
         h = self.history
         assert h is not None
         assert h.last_fn is not None
@@ -260,6 +264,7 @@ class Tensor:
         ]
 
     def backward(self, grad_output: Optional[Tensor] = None) -> None:
+        """Compute gradients through backpropagation."""
         if grad_output is None:
             assert self.shape == (1,), "Must provide grad_output if non-scalar"
             grad_output = Tensor.make([1.0], (1,), backend=self.backend)
@@ -285,3 +290,86 @@ class Tensor:
 
     # Functions
     # TODO: Implement for Task 2.3.
+    def add(self, b:Tensor) -> Tensor:
+        """Element-wise addition."""
+        return Add.apply(self, b)
+
+    def sub(self, b: Tensor) -> Tensor:
+        """Element-wise subtraction."""
+        return Add.apply(self, Neg.apply(b))
+
+    def mul(self, b: Tensor) -> Tensor:
+        """Element-wise multiplication."""
+        return Mul.apply(self, b)
+
+    def lt(self, b: Tensor) -> Tensor:
+        """Element-wise less than comparison."""
+        return LT.apply(self, b)
+
+    def eq(self, b: Tensor) -> Tensor:
+        """Element-wise equality comparison."""
+        return EQ.apply(self, b)
+
+    def gt(self, b: Tensor) -> Tensor:
+        """Element-wise greater than comparison."""
+        return LT.apply(b, self)
+
+    def neg(self) -> Tensor:
+        """Element-wise negation."""
+        return Neg.apply(self)
+
+    def radd(self, b: Tensor) -> Tensor:
+        """Reverse element-wise addition."""
+        return Add.apply(b, self)
+
+    def rmul(self, b: Tensor) -> Tensor:
+        """Reverse element-wise multiplication."""
+        return Mul.apply(b, self)
+
+    def is_close(self, b: Tensor) -> Tensor:
+        """Element-wise comparison for near equality."""
+        return IsClose.apply(self, b)
+
+    def sigmoid(self) -> Tensor:
+        """Element-wise sigmoid function."""
+        return Sigmoid.apply(self)
+
+    def relu(self) -> Tensor:
+        """Element-wise ReLU function."""
+        return ReLU.apply(self)
+
+    def log(self) -> Tensor:
+        """Element-wise natural logarithm."""
+        return Log.apply(self)
+
+    def exp(self) -> Tensor:
+        """Element-wise exponential function."""
+        return Exp.apply(self)
+
+    def all(self, dim: Optional[int] = None) -> Tensor:
+        """Returns True if all elements are True."""
+        return All.apply(self, dim)
+    
+    def sum(self, dim: Optional[int] = None) -> Tensor:
+        """Compute the sum along the specified dimension."""
+        return Sum.apply(self, dim)
+
+    def mean(self, dim: Optional[int] = None) -> Tensor:
+        """Compute the mean along the specified dimension."""
+        return self.sum(dim) / self.shape[dim] if dim is not None else self.sum() / self.size
+
+    def permute(self, *dims: int) -> Tensor:
+        """Permute the dimensions of the tensor."""
+        return Permute.apply(self, dims)
+
+    def view(self, *shape: int) -> Tensor:
+        """Reshape the tensor to the specified shape."""
+        return View.apply(self, tensor(shape))
+    
+    def zero_grad_(self) -> None:
+        """Resets the gradient to zero."""
+        self.grad = Tensor.make(
+            [0.0] * int(operators.prod(self.shape)),
+            self.shape,
+            backend=self.backend,
+        )
