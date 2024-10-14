@@ -220,7 +220,7 @@ class Permute(Function):
     def forward(ctx: Context, t1: Tensor, dim: int) -> Tensor:
         """Permutes the dimensions of the input tensor."""
         ctx.save_for_backward(t1, dim)
-        return t1._tensor.permute(*dim)
+        return t1._tensor_data.permute(*dim)
 
 
 class View(Function):
