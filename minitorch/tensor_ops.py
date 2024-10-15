@@ -378,6 +378,7 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
+        
         reduce_size = a_shape[reduce_dim]
 
         for ordinal in range(out.size):
@@ -386,14 +387,14 @@ def tensor_reduce(
 
             a_index = out_index.copy()
             a_index[reduce_dim] = 0
-            accumulator = a_storage[index_to_position(a_index, a_strides)]
+            total = a_storage[index_to_position(a_index, a_strides)]
 
             for i in range(1, reduce_size):
                 a_index[reduce_dim] = i
                 a_ordinal = index_to_position(a_index, a_strides)
-                accumulator = fn(accumulator, a_storage[a_ordinal])
+                total = fn(total, a_storage[a_ordinal])
 
-            out[ordinal] = accumulator
+            out[ordinal] = total
 
         # TODO: Implement for Task 2.3.
         # raise NotImplementedError("Need to implement for Task 2.3")
