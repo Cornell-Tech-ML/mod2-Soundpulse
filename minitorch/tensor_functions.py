@@ -115,7 +115,7 @@ class All(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Backward pass for All operation"""
         a: Tensor = ctx.saved_values[0]
-        grad_a = grad_output.expand(a.shape)
+        grad_a = grad_output.expand(a)
 
         return grad_a
 
@@ -232,7 +232,7 @@ class Sum(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
-        grad_a = grad_output.expand(a.shape)
+        grad_a = grad_output.expand(a)
 
         return grad_a
 
@@ -296,7 +296,7 @@ class View(Function):
         """View Backward, reshape to original shape"""
         a_shape: UserShape = ctx.saved_values[0]
 
-        return Tensor.make(grad_output._tensor._storage, a_shape, backend=grad_output.backend)
+        return minitorch.Tensor.make(grad_output._tensor._storage, shape=a_shape, backend=grad_output.backend)
 
 
 class Copy(Function):
