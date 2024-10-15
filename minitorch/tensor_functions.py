@@ -169,7 +169,7 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
         sigma: Tensor = ctx.saved_values[0]
-        return grad_output.f.mul_zip(grad_output, sigma.f.mul_zip(sigma, sigma.f.add_scalar(-1.0)))
+        return grad_output.f.mul_zip(grad_output, sigma.f.mul_zip(sigma, sigma.f.add_zip(sigma, -1.0)))
 
 class ReLU(Function):
     @staticmethod
@@ -208,7 +208,7 @@ class Exp(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the log operation."""
         t1: Tensor = ctx.saved_values[0]
-        return grad_output.f.mul_zip(grad_output, t1)
+        return grad_output.f.mul_zip(grad_output, t1.f.exp_map(t1))
 
 class Sum(Function):
     @staticmethod
@@ -220,7 +220,7 @@ class Sum(Function):
             return a.f.add_reduce(a, int(dim.item()))
         
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Optional[Tensor]]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
         return grad_output.zeros(grad_output.shape) + 1
 
@@ -265,22 +265,13 @@ class Permute(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, dims: Tensor) -> Tensor:
         """Permutes the dimensions of the input tensor. Convert TensorData to Tensor."""
-        ctx.save_for_backward(t1, dims)
-
         dims_tuple = tuple(int(d) for d in dims._tensor._storage)
-        
         return t1._new(t1._tensor.permute(*dims_tuple))
     
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Backward for Permute Function"""
-        (original,) = ctx.saved_values
-        return (
-            minitorch.Tensor.make(
-                grad_output._tensor._storage, original, backend=grad_output.backend
-            ),
-            0.0,
-        )
+        return grad_output
 
 class View(Function):
     @staticmethod
@@ -294,15 +285,11 @@ class View(Function):
         )
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
-        """Matrix Multiply backward (module 3)"""
-        (original,) = ctx.saved_values
-        return (
-            minitorch.Tensor.make(
-                grad_output._tensor._storage, original, backend=grad_output.backend
-            ),
-            0.0,
-        )
+    def backward(ctx: Context, grad_output: Tensor) ->Tensor:
+        """View Backward, reshape to original shape"""
+        a: Tensor = ctx.saved_values[0]
+
+        return Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend),
 
 
 class Copy(Function):
