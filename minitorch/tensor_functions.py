@@ -114,7 +114,10 @@ class All(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Backward pass for All operation"""
-        return grad_output.zeros(grad_output.shape)
+        (a,) = ctx.saved_values
+        grad_a = grad_output.expand(a.shape)
+
+        return grad_a
 
 
 # TODO: Implement for Task 2.3.
@@ -187,6 +190,7 @@ class ReLU(Function):
         t1: Tensor = ctx.saved_values[0]
         return grad_output.f.relu_back_zip(t1, grad_output)
 
+
 class Log(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
@@ -218,6 +222,7 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
+        ctx.save_for_backward(a, dim)
         if dim is None:
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
@@ -226,7 +231,7 @@ class Sum(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
-        return grad_output.zeros(grad_output.shape)
+        return grad_output.zeros(grad_output.shape) + 1
 
 class LT(Function):
     @staticmethod
@@ -248,7 +253,7 @@ class EQ(Function):
         return t1.f.eq_zip(t1, t2)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the eq operation."""
         return (grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape))
 
@@ -260,7 +265,7 @@ class IsClose(Function):
         return t1.f.is_close_zip(t1, t2)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the isClose operation."""
         return (grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape))
 
