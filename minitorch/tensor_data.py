@@ -105,7 +105,6 @@ def broadcast_index(
             else:
                 out_index[i - offset] = big_index[i]
 
-    return
     # TODO: Implement for Task 2.2.
     # raise NotImplementedError("Need to implement for Task 2.2")
 

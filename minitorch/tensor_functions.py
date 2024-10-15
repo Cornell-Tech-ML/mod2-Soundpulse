@@ -227,8 +227,8 @@ class Sum(Function):
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
 
-        return minitorch.Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend),
-
+        return a
+        #return minitorch.Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend)
 
 class LT(Function):
     @staticmethod
@@ -290,7 +290,9 @@ class View(Function):
         """View Backward, reshape to original shape"""
         a: Tensor = ctx.saved_values[0]
 
-        return minitorch.Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend),
+        return a
+        #return minitorch.Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend)
+    
 
 
 class Copy(Function):
