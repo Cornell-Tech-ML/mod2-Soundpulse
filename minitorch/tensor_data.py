@@ -12,7 +12,7 @@ from typing_extensions import TypeAlias
 
 from .operators import prod
 
-#MAX_DIMS = 32
+MAX_DIMS = 32
 
 
 class IndexingError(RuntimeError):

@@ -173,7 +173,7 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
         sigma: Tensor = ctx.saved_values[0]
-        ones = sigma.zeros(sigma.shape) + 1
+        ones = minitorch.Tensor.make([1.0] * int(operators.prod(sigma.shape)), sigma.shape, backend=grad_output.backend)
         one_minus_sigma = sigma.f.add_zip(ones, sigma.f.neg_map(sigma))
 
         return grad_output.f.mul_zip(grad_output.f.mul_zip(sigma, one_minus_sigma), grad_output)
