@@ -246,7 +246,6 @@ class LT(Function):
         """Computes the gradient for the lt operation."""
         return (grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape))
 
-
 class EQ(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
@@ -274,28 +273,28 @@ class Permute(Function):
         return t1._new(t1._tensor.permute(*dims_tuple))
     
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, None]:
         """Backward for Permute Function"""
-        return grad_output
+        return (grad_output, None)
 
 class View(Function):
     @staticmethod
-    def forward(ctx: Context, a: Tensor, shape: Tensor) -> Tensor:
+    def forward(ctx: Context, a: Tensor, shape1: Tensor) -> Tensor:
         """Reshape the tensor to the given shape."""
         ctx.save_for_backward(a)
         assert a._tensor.is_contiguous(), "Must be contiguous to view"
-        shape2 = [int(shape[i]) for i in range(shape.size)]
+        shape2 = [int(shape1[i]) for i in range(shape1.size)]
         return minitorch.Tensor.make(
             a._tensor._storage, tuple(shape2), backend=a.backend
         )
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) ->Tensor:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, None]:
         """View Backward, reshape to original shape"""
         a: Tensor = ctx.saved_values[0]
         grad_a = grad_output.expand(a)
 
-        return grad_a
+        return grad_a, None
 
 
 class Copy(Function):
