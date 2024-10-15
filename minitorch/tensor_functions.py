@@ -152,7 +152,10 @@ class Mul(Function):
 
         """
         t1, t2 = ctx.saved_values
-        return (grad_output.f.mul_zip(grad_output, t2), grad_output.f.mul_zip(grad_output, t1))
+        return (
+            grad_output.f.mul_zip(grad_output, t2),
+            grad_output.f.mul_zip(grad_output, t1),
+        )
 
 
 class Sigmoid(Function):
@@ -167,10 +170,9 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
         sigma: Tensor = ctx.saved_values[0]
-        #one_tensor = minitorch.Tensor.make([1], (1, ), backend=sigma.backend)
-        #one_minus_sigma = sigma.f.add_zip(one_tensor, sigma.f.neg_map(sigma))
+        one_minus_sigma = sigma.f.add_zip(1, sigma.f.neg_map(sigma))
 
-        return grad_output.f.mul_zip(grad_output.f.mul_zip(sigma, sigma), grad_output)
+        return grad_output.f.mul_zip(grad_output.f.mul_zip(sigma, one_minus_sigma), grad_output)
 
 class ReLU(Function):
     @staticmethod
@@ -216,7 +218,6 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
-        ctx.save_for_backward(a)
         if dim is None:
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
@@ -225,10 +226,7 @@ class Sum(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
-        a: Tensor = ctx.saved_values[0]
-
-        return a
-        #return minitorch.Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend)
+        return grad_output.zeros(grad_output.shape)
 
 class LT(Function):
     @staticmethod
@@ -261,6 +259,11 @@ class IsClose(Function):
         """Computes the element-wise 'is close' comparison of two input tensors."""
         return t1.f.is_close_zip(t1, t2)
 
+    @staticmethod
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Computes the gradient for the isClose operation."""
+        return (grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape))
+
 
 class Permute(Function):
     @staticmethod
@@ -286,13 +289,11 @@ class View(Function):
         )
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+    def backward(ctx: Context, grad_output: Tensor) ->Tensor:
         """View Backward, reshape to original shape"""
-        a_shape: UserShape = ctx.saved_values[0]
+        a: Tensor = ctx.saved_values[0]
 
-        #return grad_output
-        return minitorch.Tensor.make(grad_output._tensor._storage, a_shape, backend=grad_output.backend)
-    
+        return Tensor.make(grad_output._tensor._storage, a, backend=grad_output.backend)
 
 
 class Copy(Function):
