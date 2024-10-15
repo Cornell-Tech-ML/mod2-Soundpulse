@@ -173,7 +173,7 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
         sigma: Tensor = ctx.saved_values[0]
-        one_minus_sigma = sigma.f.add_zip(1, sigma.f.neg_map(sigma))
+        one_minus_sigma = sigma.f.add_zip(Tensor.make([1], (1,), backend=sigma.backend), sigma.f.neg_map(sigma))
 
         return grad_output.f.mul_zip(grad_output.f.mul_zip(sigma, one_minus_sigma), grad_output)
 
@@ -253,7 +253,7 @@ class EQ(Function):
         return t1.f.eq_zip(t1, t2)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the eq operation."""
         return (grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape))
 
@@ -263,11 +263,6 @@ class IsClose(Function):
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
         """Computes the element-wise 'is close' comparison of two input tensors."""
         return t1.f.is_close_zip(t1, t2)
-
-    @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        """Computes the gradient for the isClose operation."""
-        return (grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape))
 
 
 class Permute(Function):
