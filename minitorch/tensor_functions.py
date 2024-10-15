@@ -242,7 +242,11 @@ class Sum(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
-        return grad_output.zeros(a.shape) + 1
+        return minitorch.Tensor.make(
+            [1.0] * int(operators.prod(a.shape)),
+            a.shape,
+            backend=grad_output.backend,
+        )
 
 
 class LT(Function):
