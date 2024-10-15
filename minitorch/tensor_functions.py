@@ -239,10 +239,10 @@ class Sum(Function):
             return a.f.add_reduce(a, int(dim.item()))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
-        return (grad_output.expand(a), 0.0)
+        return grad_output.zeros(a.shape) + 1
 
 
 class LT(Function):
