@@ -152,10 +152,7 @@ class Mul(Function):
 
         """
         t1, t2 = ctx.saved_values
-        return (
-            grad_output.f.mul_zip(grad_output, t2),
-            grad_output.f.mul_zip(grad_output, t1),
-        )
+        return grad_output.f.mul_zip(grad_output, t2), grad_output.f.mul_zip(grad_output, t1)
 
 
 class Sigmoid(Function):
@@ -218,6 +215,7 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
+        ctx.save_for_backward(a)
         if dim is None:
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
