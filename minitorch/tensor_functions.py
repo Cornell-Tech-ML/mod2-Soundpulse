@@ -232,6 +232,7 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
+        ctx.save_for_backward(a)
         if dim is None:
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
@@ -240,7 +241,8 @@ class Sum(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Computes the gradient for the sum operation."""
-        return (grad_output.zeros(grad_output.shape), 0.0)
+        a: Tensor = ctx.saved_values[0]
+        return (grad_output.zeros(a.shape), 0.0)
 
 
 class LT(Function):
