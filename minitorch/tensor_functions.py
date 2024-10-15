@@ -112,12 +112,12 @@ class All(Function):
             return a.f.mul_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, None]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Backward pass for All operation"""
         a: Tensor = ctx.saved_values[0]
         grad_input = a.zeros(a.shape)
 
-        return (grad_input, None)
+        return (grad_input, 0.0)
 
 
 # TODO: Implement for Task 2.3.
@@ -240,7 +240,7 @@ class Sum(Function):
             return a.f.add_reduce(a, int(dim.item()))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, None]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
         dim = ctx.saved_values[1]
@@ -254,7 +254,7 @@ class Sum(Function):
             expand_shape[int(dim)] = 1
             grad_input = grad_output.view(*expand_shape).expand(a)
 
-        return grad_input, None
+        return grad_input, 0.0
 
 
 class LT(Function):
@@ -300,32 +300,47 @@ class Permute(Function):
     def forward(ctx: Context, t1: Tensor, dims: Tensor) -> Tensor:
         """Permutes the dimensions of the input tensor. Convert TensorData to Tensor."""
         dims_tuple = tuple(int(d) for d in dims._tensor._storage)
+        ctx.save_for_backward(dims_tuple)
         return t1._new(t1._tensor.permute(*dims_tuple))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, None]:
-        """Backward for Permute Function"""
-        return (grad_output, None)
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+        """Computes the gradient for the permute operation."""
+        dims_tuple = ctx.saved_values[0]
+
+        # Reverse the permutation
+        reverse_dims = [0] * len(dims_tuple)
+        for i, dim in enumerate(dims_tuple):
+            reverse_dims[dim] = i
+
+        # Un-permute the gradients
+        grad_input = grad_output.permute(*reverse_dims)
+
+        return (grad_input, 0.0)
 
 
 class View(Function):
     @staticmethod
-    def forward(ctx: Context, a: Tensor, shape1: Tensor) -> Tensor:
-        """Reshape the tensor to the given shape."""
-        ctx.save_for_backward(a)
+    def forward(ctx: Context, a: Tensor, shape: Tensor) -> Tensor:
+        """Reshapes the input tensor to the specified shape without changing its data."""
+        ctx.save_for_backward(a.shape)
         assert a._tensor.is_contiguous(), "Must be contiguous to view"
-        shape2 = [int(shape1[i].item()) for i in range(shape1.size)]
+        shape2 = [int(shape[i]) for i in range(shape.size)]
         return minitorch.Tensor.make(
             a._tensor._storage, tuple(shape2), backend=a.backend
         )
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, None]:
-        """View Backward, reshape to original shape"""
-        a: Tensor = ctx.saved_values[0]
-        grad_a = grad_output.expand(a)
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+        """Matrix Multiply backward (module 3)"""
+        (original,) = ctx.saved_values
+        return (
+            minitorch.Tensor.make(
+                grad_output._tensor._storage, original, backend=grad_output.backend
+            ),
+            0.0,
+        )
 
-        return grad_a, None
 
 
 class Copy(Function):
