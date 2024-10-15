@@ -64,7 +64,7 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # TODO: Implement for Task 2.1.
-    strides = strides_from_shape(shape)
+    strides = strides_from_shape(list(shape))
 
     for i in range(len(shape)):
         out_index[i] = ordinal // strides[i]

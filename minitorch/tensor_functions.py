@@ -334,7 +334,6 @@ class View(Function):
         )
 
 
-
 class Copy(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor) -> Tensor:

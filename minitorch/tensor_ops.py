@@ -378,7 +378,6 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        
         reduce_size = a_shape[reduce_dim]
 
         for ordinal in range(out.size):
