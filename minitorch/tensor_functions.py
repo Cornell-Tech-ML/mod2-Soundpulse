@@ -152,7 +152,7 @@ class Mul(Function):
 
         """
         t1, t2 = ctx.saved_values
-        return grad_output.f.mul_zip(grad_output, t2), grad_output.f.mul_zip(grad_output, t1)
+        return (grad_output.f.mul_zip(grad_output, t2), grad_output.f.mul_zip(grad_output, t1))
 
 
 class Sigmoid(Function):
@@ -167,7 +167,7 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
         sigma: Tensor = ctx.saved_values[0]
-        one_minus_sigma = sigma.f.add_zip(1, sigma.f.neg_map(sigma))
+        one_minus_sigma = sigma.f.add_zip(Tensor.make([1], (1, ), backend=sigma.backend), sigma.f.neg_map(sigma))
 
         return grad_output.f.mul_zip(grad_output.f.mul_zip(sigma, one_minus_sigma), grad_output)
 
@@ -239,7 +239,7 @@ class LT(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the lt operation."""
-        return grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape)
+        return (grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape))
 
 
 class EQ(Function):
@@ -251,7 +251,7 @@ class EQ(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the eq operation."""
-        return grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape)
+        return (grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape))
 
 
 class IsClose(Function):
@@ -285,7 +285,7 @@ class View(Function):
         )
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) ->Tensor:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """View Backward, reshape to original shape"""
         a: Tensor = ctx.saved_values[0]
 
