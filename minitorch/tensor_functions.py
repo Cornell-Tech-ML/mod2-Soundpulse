@@ -162,14 +162,17 @@ class Sigmoid(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         """Computes the element-wise Sigmoid of the input tensor."""
-        ctx.save_for_backward(t1)
-        return t1.f.sigmoid_map(t1)
+        sigmoid_a = t1.f.sigmoid_map(t1)
+        ctx.save_for_backward(sigmoid_a)
+        return sigmoid_a
     
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
         sigma: Tensor = ctx.saved_values[0]
-        return grad_output.f.mul_zip(grad_output, sigma.f.mul_zip(sigma, sigma.f.add_zip(sigma, -1.0)))
+        one_minus_sigma = sigma.f.add_zip(1, sigma.f.neg_map(sigma))
+
+        return grad_output.f.mul_zip(grad_output.f.mul_zip(sigma, one_minus_sigma), grad_output)
 
 class ReLU(Function):
     @staticmethod
@@ -201,14 +204,15 @@ class Exp(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         """Computes the element-wise exponential of the input tensor."""
-        ctx.save_for_backward(t1)
-        return t1.f.exp_map(t1)
+        exp_t1 = t1.f.exp_map(t1)
+        ctx.save_for_backward(exp_t1)
+        return exp_t1
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the log operation."""
-        t1: Tensor = ctx.saved_values[0]
-        return grad_output.f.mul_zip(grad_output, t1.f.exp_map(t1))
+        exp_t1: Tensor = ctx.saved_values[0]
+        return grad_output.f.mul_zip(grad_output, exp_t1)
 
 class Sum(Function):
     @staticmethod
@@ -222,7 +226,10 @@ class Sum(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
-        return grad_output.zeros(grad_output.shape) + 1
+        a: Tensor = ctx.saved_values[0]
+
+        return Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend),
+
 
 class LT(Function):
     @staticmethod
@@ -254,11 +261,6 @@ class IsClose(Function):
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
         """Computes the element-wise 'is close' comparison of two input tensors."""
         return t1.f.is_close_zip(t1, t2)
-
-    @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        """Computes the gradient for the isClose operation."""
-        return grad_output.zeros(grad_output.shape), grad_output.zeros(grad_output.shape)
 
 
 class Permute(Function):
