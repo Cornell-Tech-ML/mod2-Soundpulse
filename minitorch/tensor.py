@@ -383,11 +383,11 @@ class Tensor:
 
     def permute(self, *dims: int) -> Tensor:
         """Permute the dimensions of the tensor."""
-        return Permute.apply(self, *dims)
+        return Permute.apply(self, Tensor.make(dims, (len(dims),), backend=self.backend))
 
     def view(self, *shape: int) -> Tensor:
         """Reshape the tensor to the specified shape."""
-        return View.apply(self, tensor(shape))
+        return View.apply(self, Tensor.make(shape, (len(shape),), backend=self.backend))
 
     def zero_grad_(self) -> None:
         """Resets the gradient to None."""

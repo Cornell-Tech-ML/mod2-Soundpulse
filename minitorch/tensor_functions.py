@@ -219,13 +219,14 @@ class IsClose(Function):
 
 class Permute(Function):
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, *dims: int) -> Tensor:
-        """Permutes the dimensions of the input tensor."""
-        ctx.save_for_backward(dims)
+    def forward(ctx: Context, t1: Tensor, dims: Tensor) -> Tensor:
+        """Permutes the dimensions of the input tensor. Convert TensorData to Tensor."""
+        ctx.save_for_backward(t1, dims)
 
-        return t1._tensor.permute(*dims)
+        dims_tuple = tuple(int(d) for d in dims._tensor._storage)
+        
+        return t1._new(t1._tensor.permute(*dims_tuple))
     
-
 class View(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, shape: Tensor) -> Tensor:

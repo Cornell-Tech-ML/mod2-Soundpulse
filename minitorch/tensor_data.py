@@ -290,8 +290,8 @@ class TensorData:
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
         # TODO: Implement for Task 2.1.
-        shape_out = tuple([self._shape[o] for o in order])
-        strides_out = tuple([self.strides[o] for o in order])
+        shape_out = tuple([self.shape[o] for o in tuple(order)])
+        strides_out = tuple([self.strides[o] for o in tuple(order)])
 
         return TensorData(self._storage, shape_out, strides_out)
         # raise NotImplementedError("Need to implement for Task 2.1")
