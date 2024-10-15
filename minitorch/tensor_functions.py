@@ -98,7 +98,7 @@ class Add(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the addition operation."""
-        return grad_output, grad_output
+        return (grad_output, grad_output)
 
 
 class All(Function):
@@ -167,7 +167,8 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
         sigma: Tensor = ctx.saved_values[0]
-        one_minus_sigma = sigma.f.add_zip(Tensor.make([1], (1, ), backend=sigma.backend), sigma.f.neg_map(sigma))
+        one_tensor = minitorch.Tensor.make([1], (1, ), backend=sigma.backend)
+        one_minus_sigma = sigma.f.add_zip(one_tensor, sigma.f.neg_map(sigma))
 
         return grad_output.f.mul_zip(grad_output.f.mul_zip(sigma, one_minus_sigma), grad_output)
 
@@ -226,7 +227,7 @@ class Sum(Function):
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
 
-        return Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend),
+        return minitorch.Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend),
 
 
 class LT(Function):
@@ -289,7 +290,7 @@ class View(Function):
         """View Backward, reshape to original shape"""
         a: Tensor = ctx.saved_values[0]
 
-        return Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend),
+        return minitorch.Tensor.make(grad_output._tensor._storage, a.shape, backend=grad_output.backend),
 
 
 class Copy(Function):
