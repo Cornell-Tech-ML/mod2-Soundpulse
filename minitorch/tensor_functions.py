@@ -232,12 +232,12 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
-        dim_item = dim.item() if dim is not None else None
-        ctx.save_for_backward(a, dim_item)
         if dim is None:
+            ctx.save_for_backward(a, None)
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
-            return a.f.add_reduce(a, int(dim_item))
+            ctx.save_for_backward(a, int(dim.item()))
+            return a.f.add_reduce(a, int(dim.item()))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, None]:
@@ -314,7 +314,7 @@ class View(Function):
         """Reshape the tensor to the given shape."""
         ctx.save_for_backward(a)
         assert a._tensor.is_contiguous(), "Must be contiguous to view"
-        shape2 = [int(shape1[i]) for i in range(shape1.size)]
+        shape2 = [int(shape1[i].item()) for i in range(shape1.size)]
         return minitorch.Tensor.make(
             a._tensor._storage, tuple(shape2), backend=a.backend
         )
