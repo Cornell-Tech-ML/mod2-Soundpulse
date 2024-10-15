@@ -173,7 +173,8 @@ class Sigmoid(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
         sigma: Tensor = ctx.saved_values[0]
-        one_minus_sigma = sigma.f.add_zip(minitorch.Tensor.make([1], (1,), backend=sigma.backend), sigma.f.neg_map(sigma))
+        ones = minitorch.Tensor.make([1.0] * int(operators.prod(sigma.shape)), sigma.shape, backend=grad_output.backend)
+        one_minus_sigma = sigma.f.add_zip(ones, sigma.f.neg_map(sigma))
 
         return grad_output.f.mul_zip(grad_output.f.mul_zip(sigma, one_minus_sigma), grad_output)
 
@@ -284,7 +285,7 @@ class View(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, shape: Tensor) -> Tensor:
         """Reshape the tensor to the given shape."""
-        ctx.save_for_backward(a.shape)
+        ctx.save_for_backward(a)
         assert a._tensor.is_contiguous(), "Must be contiguous to view"
         shape2 = [int(shape[i]) for i in range(shape.size)]
         return minitorch.Tensor.make(
@@ -294,9 +295,10 @@ class View(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) ->Tensor:
         """View Backward, reshape to original shape"""
-        a_shape: UserShape = ctx.saved_values[0]
+        a: Tensor = ctx.saved_values[0]
+        grad_a = grad_output.expand(a)
 
-        return minitorch.Tensor.make(grad_output._tensor._storage, shape=a_shape, backend=grad_output.backend)
+        return grad_a
 
 
 class Copy(Function):
