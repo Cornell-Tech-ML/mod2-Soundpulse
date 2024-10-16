@@ -244,12 +244,12 @@ class Sum(Function):
         a, dim = ctx.saved_tensors
 
         if dim is None:
-            grad_input = grad_output.expand_as(a)
+            grad_input = grad_output.expand(a)
         else:
             shape = list(a.shape)
             shape[int(dim.item())] = 1
-            grad_output_reshaped = grad_output.view(*shape) 
-            grad_input = grad_output_reshaped.expand_as(a)
+            grad_output_reshaped = grad_output.view(*shape)
+            grad_input = grad_output_reshaped.expand(a)
 
         return grad_input
 
