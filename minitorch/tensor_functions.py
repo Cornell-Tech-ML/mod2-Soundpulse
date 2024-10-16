@@ -223,19 +223,19 @@ class Exp(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        """Computes the gradient for the log operation."""
-        exp_t1: Tensor = ctx.saved_values[0]
+        """Computes the gradient for the exp operation."""
+        exp_t1 = ctx.saved_tensors[0]
         return grad_output.f.mul_zip(grad_output, exp_t1)
 
 
 class Sum(Function):
     @staticmethod
-    def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
+    def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
-        ctx.save_for_backward(a)
-        ctx.dim = dim
+        ctx.save_for_backward(a, dim)
 
-        if dim is None:
+        # assume -1 equates to all dim brodcast
+        if int(dim.item()) == -1:
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
             return a.f.add_reduce(a, int(dim.item()))
@@ -243,15 +243,14 @@ class Sum(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Computes the gradient for the sum operation."""
-        a: Tensor = ctx.saved_values[0]
-        dim = ctx.dim
+        a, dim = ctx.saved_tensors
 
-        if dim is None:
+        # assume -1 equates to all dim brodcast
+        if int(dim.item()) == -1:
             grad_input = grad_output.expand(a)
         else:
-            dim = dim.item() if isinstance(dim, Tensor) else dim
             shape = list(a.shape)
-            shape[dim] = 1
+            shape[int(dim.item())] = 1
             grad_output_reshaped = grad_output.view(*shape)
             grad_input = grad_output_reshaped.expand(a)
 
@@ -268,8 +267,8 @@ class LT(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the lt operation."""
         return (
-            grad_output.zeros(grad_output.shape),
-            grad_output.zeros(grad_output.shape),
+            grad_output.zeros(grad_output.shape, backend=grad_output.backend),
+            grad_output.zeros(grad_output.shape, backend=grad_output.backend),
         )
 
 
@@ -283,8 +282,8 @@ class EQ(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the eq operation."""
         return (
-            grad_output.zeros(grad_output.shape),
-            grad_output.zeros(grad_output.shape),
+            grad_output.zeros(grad_output.shape, backend=grad_output.backend),
+            grad_output.zeros(grad_output.shape, backend=grad_output.backend),
         )
 
 

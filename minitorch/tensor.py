@@ -369,7 +369,7 @@ class Tensor:
     def sum(self, dim: Optional[int] = None) -> Tensor:
         """Compute the sum along the specified dimension."""
         if dim is None:
-            return Sum.apply(self)
+            return Sum.apply(self, Tensor.make([-1], (1,), backend=self.backend))
         else:
             return Sum.apply(self, Tensor.make([dim], (1,), backend=self.backend))
 
