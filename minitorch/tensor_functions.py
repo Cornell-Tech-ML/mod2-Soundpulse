@@ -103,10 +103,10 @@ class Add(Function):
 
 class All(Function):
     @staticmethod
-    def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
+    def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
         """Return 1 if all are true"""
         ctx.save_for_backward(a)
-        if dim is not None:
+        if int(dim.item()) == -1:
             return a.f.mul_reduce(a, int(dim.item()))
         else:
             return a.f.mul_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
@@ -115,9 +115,8 @@ class All(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Backward pass for All operation"""
         a = ctx.saved_tensors[0]
-        grad_input = a.zeros(a.shape)
 
-        return (grad_input, 0.0)
+        return (grad_output.zeros(a.shape), 0.0)
 
 
 # TODO: Implement for Task 2.3.
@@ -238,7 +237,7 @@ class Sum(Function):
         if int(dim.item()) == -1:
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
-            return a.f.add_reduce(a, int(dim.item()))
+            return a.f.add_reduce(a, dim)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
@@ -247,14 +246,13 @@ class Sum(Function):
 
         # assume -1 equates to all dim brodcast
         if int(dim.item()) == -1:
-            grad_input = grad_output.expand(a)
+            return (grad_output.expand(a), 0.0)
         else:
             shape = list(a.shape)
             shape[int(dim.item())] = 1
             grad_output_reshaped = grad_output.view(*shape)
             grad_input = grad_output_reshaped.expand(a)
-
-        return (grad_input, 0.0)
+            return (grad_input, 0.0)
 
 class LT(Function):
     @staticmethod

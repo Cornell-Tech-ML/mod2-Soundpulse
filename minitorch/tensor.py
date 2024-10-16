@@ -362,7 +362,7 @@ class Tensor:
     def all(self, dim: Optional[int] = None) -> Tensor:
         """Returns True if all elements are True."""
         if dim is None:
-            return All.apply(self)
+            return All.apply(self, Tensor.make([-1], (1,), backend=self.backend))
         else:
             return All.apply(self, Tensor.make([dim], (1,), backend=self.backend))
 
