@@ -375,10 +375,10 @@ class Tensor:
 
     def mean(self, dim: Optional[int] = None) -> Tensor:
         """Compute the mean along the specified dimension."""
-        if dim is not None:
-            return self.sum(dim) / self.shape[dim]
-        else:
+        if dim is None:
             return self.sum() / self.size
+        else:
+            return self.sum(dim) / self.shape[dim]
 
     def permute(self, *dims: int) -> Tensor:
         """Permute the dimensions of the tensor."""
