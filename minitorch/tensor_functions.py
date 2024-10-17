@@ -137,13 +137,12 @@ class Sum(Function):
         """Computes the gradient for the sum operation."""
         a, dim = ctx.saved_tensors
 
-        # assume -1 equates to all dim brodcast
         if dim is not None:
-            return (grad_output.expand(a), 0.0)
-        else:
             shape = list(a.shape)
             shape[int(dim.item())] = 1
             return (grad_output.view(*shape).expand(a), 0.0)
+        else:
+            return (grad_output.expand(a), 0.0)
 
 class Mul(Function):
     @staticmethod
@@ -262,8 +261,8 @@ class LT(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the lt operation."""
         return (
-            grad_output.zeros(grad_output.shape, backend=grad_output.backend),
-            grad_output.zeros(grad_output.shape, backend=grad_output.backend),
+            grad_output.zeros(grad_output.shape),
+            grad_output.zeros(grad_output.shape)
         )
 
 
@@ -277,8 +276,8 @@ class EQ(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the eq operation."""
         return (
-            grad_output.zeros(grad_output.shape, backend=grad_output.backend),
-            grad_output.zeros(grad_output.shape, backend=grad_output.backend),
+            grad_output.zeros(grad_output.shape),
+            grad_output.zeros(grad_output.shape)
         )
 
 
