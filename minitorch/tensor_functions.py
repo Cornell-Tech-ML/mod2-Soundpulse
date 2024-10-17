@@ -125,33 +125,31 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
-        ctx.save_for_backward(a.shape, dim)
-        if dim is not None:
-            return a.f.add_reduce(a, int(dim.item()))
+        if dim is None:
+            dim_val = -1
         else:
-            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
+            dim_val = int(dim.item())
 
+        ctx.save_for_backward(a, dim_val)
+
+        if dim_val == -1:
+            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
+        else:
+            return a.f.add_reduce(a, int(dim.item()))
+        
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Computes the gradient for the sum operation."""
-        original_shape, dim = ctx.saved_values
+        a: Tensor = ctx.saved_values[0]
+        dim_val: int = ctx.saved_values[1]
 
-        if dim is not None:
-            shape = list(original_shape)
-            shape[int(dim.item())] = 1
-            grad_input = grad_output.view(*shape).expand(minitorch.Tensor.make(
-                grad_output._tensor._storage * int(operators.prod(original_shape) // grad_output.size),
-                original_shape,
-                backend=grad_output.backend
-            ))
+        # assume -1 equates to all dim brodcast
+        if dim_val == -1:
+            return (grad_output.expand(a), 0.0)
         else:
-            grad_input = grad_output.expand(minitorch.Tensor.make(
-                [grad_output.item()] * int(operators.prod(original_shape)),
-                original_shape,
-                backend=grad_output.backend
-            ))
-
-        return (grad_input, 0.0)
+            shape = list(a.shape)
+            shape[dim_val] = 1
+            return (grad_output.view(*shape).expand(a), 0.0)
 
 class Mul(Function):
     @staticmethod
