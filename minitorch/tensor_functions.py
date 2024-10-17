@@ -135,7 +135,7 @@ class Sum(Function):
         if dim_val == -1:
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
-            return a.f.add_reduce(a, int(dim.item()))
+            return a.f.add_reduce(a, dim_val)
         
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
