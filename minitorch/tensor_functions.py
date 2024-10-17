@@ -139,13 +139,13 @@ class Sum(Function):
         if dim is not None:
             shape = list(original_shape)
             shape[int(dim.item())] = 1
-            grad_input = grad_output.view(*shape).expand(Tensor.make(
+            grad_input = grad_output.view(*shape).expand(minitorch.Tensor.make(
                 grad_output._tensor._storage * int(operators.prod(original_shape) // grad_output.size),
                 original_shape,
                 backend=grad_output.backend
             ))
         else:
-            grad_input = grad_output.expand(Tensor.make(
+            grad_input = grad_output.expand(minitorch.Tensor.make(
                 [grad_output.item()] * int(operators.prod(original_shape)),
                 original_shape,
                 backend=grad_output.backend
