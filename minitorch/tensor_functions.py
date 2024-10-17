@@ -125,7 +125,7 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
-        ctx.save_for_backward(a)
+        ctx.save_for_backward(a.shape)
         if dim is not None:
             return a.f.add_reduce(a, int(dim.item()))
         else:
@@ -134,9 +134,12 @@ class Sum(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
-        a = ctx.saved_tensors[0]
+        (original,) = ctx.saved_values
+        grad_input = grad_output.expand(
+            minitorch.Tensor.make(grad_output._tensor._storage, original, backend=grad_output.backend
+        ))
 
-        return grad_output.expand(a)
+        return (grad_input, 0.0)
 
 class Mul(Function):
     @staticmethod
