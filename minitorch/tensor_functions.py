@@ -112,11 +112,11 @@ class All(Function):
             return a.f.mul_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Backward pass for All operation"""
         a = ctx.saved_tensors[0]
 
-        return (grad_output.zeros(a.shape), 0.0)
+        return grad_output.zeros(a.shape)
 
 
 # TODO: Implement for Task 2.3.
@@ -132,11 +132,11 @@ class Sum(Function):
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
         a = ctx.saved_tensors[0]
 
-        return (grad_output.expand(a), 0.0)
+        return grad_output.expand(a)
 
 class Mul(Function):
     @staticmethod
@@ -300,10 +300,7 @@ class Permute(Function):
         for i, dim in enumerate(dims_tuple):
             reverse_dims[dim] = i
 
-        # Un-permute the gradients
-        grad_input = grad_output.permute(*reverse_dims)
-
-        return (grad_input, 0.0)
+        return (grad_output.permute(*reverse_dims), 0.0)
 
 
 class View(Function):
