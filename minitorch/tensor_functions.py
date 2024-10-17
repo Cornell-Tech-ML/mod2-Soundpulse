@@ -127,14 +127,11 @@ class Sum(Function):
         """Computes the sum of the input tensor along the specified dimension."""
         if dim is None:
             dim_val = -1
-        else:
-            dim_val = int(dim.item())
-
-        ctx.save_for_backward(a, dim_val)
-
-        if dim_val == -1:
+            ctx.save_for_backward(a, dim_val)
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
+            dim_val = int(dim.item())
+            ctx.save_for_backward(a, dim_val)
             return a.f.add_reduce(a, dim_val)
         
     @staticmethod
