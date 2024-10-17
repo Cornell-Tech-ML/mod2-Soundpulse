@@ -112,11 +112,11 @@ class All(Function):
             return a.f.mul_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Backward pass for All operation"""
         a = ctx.saved_tensors[0]
 
-        return grad_output.zeros(a.shape)
+        return (grad_output.zeros(a.shape), 0.0)
 
 
 # TODO: Implement for Task 2.3.
@@ -125,19 +125,31 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
-        ctx.save_for_backward(a.shape)
+        ctx.save_for_backward(a.shape, dim)
         if dim is not None:
             return a.f.add_reduce(a, int(dim.item()))
         else:
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Computes the gradient for the sum operation."""
-        (original,) = ctx.saved_values
-        grad_input = grad_output.expand(
-            minitorch.Tensor.make(grad_output._tensor._storage, original, backend=grad_output.backend
-        ))
+        original_shape, dim = ctx.saved_values
+
+        if dim is not None:
+            shape = list(original_shape)
+            shape[int(dim.item())] = 1
+            grad_input = grad_output.view(*shape).expand(Tensor.make(
+                grad_output._tensor._storage * int(operators.prod(original_shape) // grad_output.size),
+                original_shape,
+                backend=grad_output.backend
+            ))
+        else:
+            grad_input = grad_output.expand(Tensor.make(
+                [grad_output.item()] * int(operators.prod(original_shape)),
+                original_shape,
+                backend=grad_output.backend
+            ))
 
         return (grad_input, 0.0)
 
@@ -303,7 +315,10 @@ class Permute(Function):
         for i, dim in enumerate(dims_tuple):
             reverse_dims[dim] = i
 
-        return (grad_output.permute(*reverse_dims), 0.0)
+        # Un-permute the gradients
+        grad_input = grad_output.permute(*reverse_dims)
+
+        return (grad_input, 0.0)
 
 
 class View(Function):
