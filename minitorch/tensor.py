@@ -362,14 +362,14 @@ class Tensor:
     def all(self, dim: Optional[int] = None) -> Tensor:
         """Returns True if all elements are True."""
         if dim is None:
-            return All.apply(self, Tensor.make([-1], (1,), backend=self.backend))
+            return All.apply(self)
         else:
             return All.apply(self, Tensor.make([dim], (1,), backend=self.backend))
 
     def sum(self, dim: Optional[int] = None) -> Tensor:
         """Compute the sum along the specified dimension."""
         if dim is None:
-            return Sum.apply(self, Tensor.make([-1], (1,), backend=self.backend))
+            return Sum.apply(self)
         else:
             return Sum.apply(self, Tensor.make([dim], (1,), backend=self.backend))
 

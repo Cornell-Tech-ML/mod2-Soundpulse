@@ -106,7 +106,7 @@ class All(Function):
     def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
         """Return 1 if all are true"""
         ctx.save_for_backward(a)
-        if int(dim.item()) == -1:
+        if dim is not None:
             return a.f.mul_reduce(a, int(dim.item()))
         else:
             return a.f.mul_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
@@ -120,6 +120,32 @@ class All(Function):
 
 
 # TODO: Implement for Task 2.3.
+
+class Sum(Function):
+    @staticmethod
+    def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
+        """Computes the sum of the input tensor along the specified dimension."""
+        ctx.save_for_backward(a, dim)
+
+        # assume -1 equates to all dim brodcast
+        if dim is not None:
+            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
+        else:
+            return a.f.add_reduce(a, dim)
+
+    @staticmethod
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
+        """Computes the gradient for the sum operation."""
+        a, dim = ctx.saved_tensors
+
+        # assume -1 equates to all dim brodcast
+        if dim is not None:
+            return (grad_output.expand(a), 0.0)
+        else:
+            shape = list(a.shape)
+            shape[int(dim.item())] = 1
+            return (grad_output.view(*shape).expand(a), 0.0)
+
 class Mul(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
@@ -225,34 +251,6 @@ class Exp(Function):
         """Computes the gradient for the exp operation."""
         exp_t1 = ctx.saved_tensors[0]
         return grad_output.f.mul_zip(grad_output, exp_t1)
-
-
-class Sum(Function):
-    @staticmethod
-    def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
-        """Computes the sum of the input tensor along the specified dimension."""
-        ctx.save_for_backward(a, dim)
-
-        # assume -1 equates to all dim brodcast
-        if int(dim.item()) == -1:
-            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
-        else:
-            return a.f.add_reduce(a, dim)
-
-    @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
-        """Computes the gradient for the sum operation."""
-        a, dim = ctx.saved_tensors
-
-        # assume -1 equates to all dim brodcast
-        if int(dim.item()) == -1:
-            return (grad_output.expand(a), 0.0)
-        else:
-            shape = list(a.shape)
-            shape[int(dim.item())] = 1
-            grad_output_reshaped = grad_output.view(*shape)
-            grad_input = grad_output_reshaped.expand(a)
-            return (grad_input, 0.0)
 
 class LT(Function):
     @staticmethod
