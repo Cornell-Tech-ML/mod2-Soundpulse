@@ -138,8 +138,7 @@ class Sum(Function):
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
 
-        shape = list(a.shape)
-        return grad_output.view(*shape)
+        return a.expand(grad_output)
 
 class Mul(Function):
     @staticmethod
