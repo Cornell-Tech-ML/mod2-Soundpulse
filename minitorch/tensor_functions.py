@@ -125,31 +125,21 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
+        ctx.save_for_backward(a)
         if dim is None:
             dim_val = -1
-            ctx.save_for_backward(a, dim_val)
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
             dim_val = int(dim.item())
-            ctx.save_for_backward(a, dim_val)
             return a.f.add_reduce(a, dim_val)
         
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
-        #dim_val: int = ctx.saved_values[1]
 
-        # assume -1 equates to all dim brodcast
         shape = list(a.shape)
         return grad_output.view(*shape)
-        # if dim_val == -1:
-        #     return grad_output.view(a.shape)
-        # else:
-        #     shape = list(a.shape)
-        #     shape[dim_val] = 1
-
-        #     return grad_output.view(*shape)
 
 class Mul(Function):
     @staticmethod
