@@ -144,12 +144,7 @@ class Sum(Function):
         if dim_val == -1:
             return grad_output.zeros(a.shape) + 1
         else:
-            shape = list(a.shape)
-            shape[dim_val] = 1
-            
-            intermediate = grad_output.view(*shape)
-
-            return intermediate.zeros(a.shape) + 1
+            return grad_output.expand(a)
 
 class Mul(Function):
     @staticmethod
