@@ -142,11 +142,11 @@ class Sum(Function):
 
         # assume -1 equates to all dim brodcast
         if dim_val == -1:
-            return grad_output.expand(a)
+            return grad_output.zeros(a.shape) + 1
         else:
             shape = list(a.shape)
             shape[dim_val] = 1
-            return grad_output.view(*shape).expand(a)
+            return grad_output.view(*shape).zeros(a.shape) + 1
 
 class Mul(Function):
     @staticmethod
