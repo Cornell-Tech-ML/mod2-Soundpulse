@@ -138,13 +138,17 @@ class Sum(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
-        dim_val: int = ctx.saved_values[1]
+        #dim_val: int = ctx.saved_values[1]
 
         # assume -1 equates to all dim brodcast
-        if dim_val == -1:
-            return grad_output.zeros(a.shape) + 1
-        else:
-            return grad_output.expand(a)
+        return grad_output.view(a.shape)
+        # if dim_val == -1:
+        #     return grad_output.view(a.shape)
+        # else:
+        #     shape = list(a.shape)
+        #     shape[dim_val] = 1
+
+        #     return grad_output.view(*shape)
 
 class Mul(Function):
     @staticmethod
