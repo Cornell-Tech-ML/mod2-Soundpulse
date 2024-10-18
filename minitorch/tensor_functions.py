@@ -121,6 +121,7 @@ class All(Function):
 
 # TODO: Implement for Task 2.3.
 
+
 class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
@@ -133,7 +134,7 @@ class Sum(Function):
             dim_val = int(dim.item())
             ctx.save_for_backward(a, dim_val)
             return a.f.add_reduce(a, dim_val)
-        
+
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Optional[float]]:
         """Computes the gradient for the sum operation."""
@@ -141,9 +142,10 @@ class Sum(Function):
         dim_val: int = ctx.saved_values[1]
 
         if dim_val == -1:
-            return (a.expand(grad_output),)
+            return (a.expand(grad_output), None)
         else:
             return (a.expand(grad_output), 0.0)
+
 
 class Mul(Function):
     @staticmethod
@@ -251,6 +253,7 @@ class Exp(Function):
         exp_t1 = ctx.saved_tensors[0]
         return grad_output.f.mul_zip(grad_output, exp_t1)
 
+
 class LT(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
@@ -263,7 +266,7 @@ class LT(Function):
         """Computes the gradient for the lt operation."""
         return (
             grad_output.zeros(grad_output.shape),
-            grad_output.zeros(grad_output.shape)
+            grad_output.zeros(grad_output.shape),
         )
 
 
@@ -278,7 +281,7 @@ class EQ(Function):
         """Computes the gradient for the eq operation."""
         return (
             grad_output.zeros(grad_output.shape),
-            grad_output.zeros(grad_output.shape)
+            grad_output.zeros(grad_output.shape),
         )
 
 
