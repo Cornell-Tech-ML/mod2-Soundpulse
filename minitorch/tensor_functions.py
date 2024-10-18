@@ -14,7 +14,7 @@ from .autodiff import Context
 from .tensor_ops import SimpleBackend, TensorBackend
 
 if TYPE_CHECKING:
-    from typing import Any, List, Tuple, Optional
+    from typing import Any, List, Tuple, Optional, Union
 
     from .tensor import Tensor
     from .tensor_data import UserIndex, UserShape
@@ -136,13 +136,15 @@ class Sum(Function):
             return a.f.add_reduce(a, dim_val)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Optional[float]]:
+    def backward(
+        ctx: Context, grad_output: Tensor
+    ) -> Union[Tuple[Tensor], Tuple[Tensor, float]]:
         """Computes the gradient for the sum operation."""
         a: Tensor = ctx.saved_values[0]
         dim_val: int = ctx.saved_values[1]
 
         if dim_val == -1:
-            return (a.expand(grad_output), None)
+            return (a.expand(grad_output),)
         else:
             return (a.expand(grad_output), 0.0)
 
@@ -150,36 +152,13 @@ class Sum(Function):
 class Mul(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
-        """Forward pass for multiplication.
-
-        Args:
-        ----
-            ctx (Context): The context for saving values for backward pass.
-            t1 (Tensor): The first tensor to be multiplied.
-            t2 (Tensor): The second tensor to be multiplied.
-
-        Returns:
-        -------
-            Tensor: The result of element-wise multiplication of t1 and t2.
-
-        """
+        """Computes the element-wise multiplication of two tensors."""
         ctx.save_for_backward(t1, t2)
         return t1.f.mul_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        """Backward pass for multiplication.
-
-        Args:
-        ----
-            ctx (Context): The context containing saved tensors from the forward pass.
-            grad_output (Tensor): The gradient of the loss with respect to the output of the forward pass.
-
-        Returns:
-        -------
-            Tuple[Tensor, Tensor]: A tuple containing the gradients with respect to t1 and t2.
-
-        """
+        """Computes the gradient for element-wise multiplication."""
         t1, t2 = ctx.saved_tensors
         return (
             grad_output.f.mul_zip(grad_output, t2),
