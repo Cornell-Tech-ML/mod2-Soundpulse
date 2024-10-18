@@ -141,7 +141,8 @@ class Sum(Function):
         #dim_val: int = ctx.saved_values[1]
 
         # assume -1 equates to all dim brodcast
-        return grad_output.view(a.shape)
+        shape = list(a.shape)
+        return grad_output.view(*shape)
         # if dim_val == -1:
         #     return grad_output.view(a.shape)
         # else:
