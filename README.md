@@ -17,7 +17,7 @@ python sync_previous_module.py previous-module-dir current-module-dir
 The files that will be synced are:
 
         minitorch/operators.py minitorch/module.py minitorch/autodiff.py minitorch/scalar.py minitorch/scalar_functions.py minitorch/module.py project/run_manual.py project/run_scalar.py project/datasets.py
-		
+
 ## Module 2 Task 2.5: Visualization
 -------------
 ### Simple
@@ -168,7 +168,82 @@ EPOCHS = 1000
 
 #### Terminal Output:
 ```
-
+Epoch: 0/750, loss: 0, correct: 0
+Epoch: 10/750, loss: 33.024771783869504, correct: 30
+Epoch: 20/750, loss: 30.687808476139733, correct: 33
+Epoch: 30/750, loss: 29.402305188840284, correct: 34
+Epoch: 40/750, loss: 28.644375893670638, correct: 34
+Epoch: 50/750, loss: 26.467673884090964, correct: 37
+Epoch: 60/750, loss: 25.010033205404604, correct: 37
+Epoch: 70/750, loss: 22.729941400581634, correct: 39
+Epoch: 80/750, loss: 21.745121088757436, correct: 39
+Epoch: 90/750, loss: 21.34260105867539, correct: 40
+Epoch: 100/750, loss: 20.345780741122205, correct: 42
+Epoch: 110/750, loss: 18.468240757008125, correct: 42
+Epoch: 120/750, loss: 15.773963662204443, correct: 44
+Epoch: 130/750, loss: 16.01143402553927, correct: 42
+Epoch: 140/750, loss: 24.77166136108194, correct: 38
+Epoch: 150/750, loss: 8.530894104113289, correct: 46
+Epoch: 160/750, loss: 15.359714415885682, correct: 41
+Epoch: 170/750, loss: 12.812066300954317, correct: 43
+Epoch: 180/750, loss: 5.879152734677466, correct: 49
+Epoch: 190/750, loss: 5.373101642192783, correct: 48
+Epoch: 200/750, loss: 28.58617347939671, correct: 38
+Epoch: 210/750, loss: 5.465904454615317, correct: 49
+Epoch: 220/750, loss: 4.754208336874572, correct: 49
+Epoch: 230/750, loss: 4.328790791298225, correct: 49
+Epoch: 240/750, loss: 4.068980231175482, correct: 48
+Epoch: 250/750, loss: 4.013959133643323, correct: 48
+Epoch: 260/750, loss: 5.00806136361506, correct: 48
+Epoch: 270/750, loss: 7.881430602524872, correct: 47
+Epoch: 280/750, loss: 6.999277993142403, correct: 47
+Epoch: 290/750, loss: 4.293582855959412, correct: 48
+Epoch: 300/750, loss: 3.9055416573204496, correct: 48
+Epoch: 310/750, loss: 4.206331279543854, correct: 48
+Epoch: 320/750, loss: 4.936008408737744, correct: 48
+Epoch: 330/750, loss: 5.143735890274559, correct: 48
+Epoch: 340/750, loss: 4.831269358976525, correct: 48
+Epoch: 350/750, loss: 4.42393694637689, correct: 48
+Epoch: 360/750, loss: 4.249902298481415, correct: 48
+Epoch: 370/750, loss: 4.298564456191348, correct: 48
+Epoch: 380/750, loss: 4.1536582473095764, correct: 48
+Epoch: 390/750, loss: 3.8937138908865445, correct: 48
+Epoch: 400/750, loss: 3.8726868440653814, correct: 48
+Epoch: 410/750, loss: 4.115474884313483, correct: 48
+Epoch: 420/750, loss: 3.9633417925985923, correct: 48
+Epoch: 430/750, loss: 3.733707957355667, correct: 48
+Epoch: 440/750, loss: 3.558058510480926, correct: 48
+Epoch: 450/750, loss: 3.928954370575548, correct: 48
+Epoch: 460/750, loss: 3.996821288592191, correct: 48
+Epoch: 470/750, loss: 3.6134226316398235, correct: 48
+Epoch: 480/750, loss: 3.3961901810972996, correct: 48
+Epoch: 490/750, loss: 3.3679851857392684, correct: 48
+Epoch: 500/750, loss: 3.331869505399282, correct: 48
+Epoch: 510/750, loss: 3.595344611605428, correct: 48
+Epoch: 520/750, loss: 3.4354124431044335, correct: 48
+Epoch: 530/750, loss: 3.2841551445931985, correct: 48
+Epoch: 540/750, loss: 4.261922290430691, correct: 48
+Epoch: 550/750, loss: 4.612617518062038, correct: 48
+Epoch: 560/750, loss: 2.026850891911668, correct: 49
+Epoch: 570/750, loss: 1.8948092295779946, correct: 49
+Epoch: 580/750, loss: 1.9159237963435216, correct: 49
+Epoch: 590/750, loss: 2.0027167595856072, correct: 49
+Epoch: 600/750, loss: 2.103477801814278, correct: 49
+Epoch: 610/750, loss: 2.310415862879552, correct: 49
+Epoch: 620/750, loss: 2.2932626840696653, correct: 49
+Epoch: 630/750, loss: 2.2237870799484836, correct: 49
+Epoch: 640/750, loss: 2.292971528345846, correct: 49
+Epoch: 650/750, loss: 2.3139386915882594, correct: 49
+Epoch: 660/750, loss: 2.204587008061188, correct: 49
+Epoch: 670/750, loss: 2.3104765556532625, correct: 49
+Epoch: 680/750, loss: 2.1749001530961496, correct: 49
+Epoch: 690/750, loss: 2.1987030036110515, correct: 49
+Epoch: 700/750, loss: 2.149842759551457, correct: 49
+Epoch: 710/750, loss: 2.1347492539138373, correct: 49
+Epoch: 720/750, loss: 2.2320685872678054, correct: 49
+Epoch: 730/750, loss: 2.228663572262616, correct: 49
+Epoch: 740/750, loss: 2.223167088750472, correct: 49
+Epoch: 750/750, loss: 2.1761502317041015, correct: 49
 ```
 -------------
 ### XOR
