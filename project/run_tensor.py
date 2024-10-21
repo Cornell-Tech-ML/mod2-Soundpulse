@@ -100,6 +100,29 @@ class TensorTrain:
 if __name__ == "__main__":
     PTS = 50
     HIDDEN = 2
-    RATE = 0.5
+    RATE = 0.1
+    EPOCHS = 500
     data = minitorch.datasets["Simple"](PTS)
-    TensorTrain(HIDDEN).train(data, RATE)
+    TensorTrain(HIDDEN).train(data, RATE, EPOCHS)
+
+
+    # PTS = 50
+    # HIDDEN = 2
+    # RATE = 0.5
+    # EPOCHS = 500
+    # data = minitorch.datasets["Diag"](PTS)
+    # TensorTrain(HIDDEN).train(data, RATE, EPOCHS)
+
+    # PTS = 50
+    # HIDDEN = 10
+    # RATE = 0.5
+    # EPOCHS = 750
+    # data = minitorch.datasets["Split"](PTS)
+    # TensorTrain(HIDDEN).train(data, RATE)
+
+    # PTS = 50
+    # HIDDEN = 10
+    # RATE = 0.5
+    # EPOCHS = 500
+    # data = minitorch.datasets["Xor"](PTS)
+    # TensorTrain(HIDDEN).train(data, RATE)
