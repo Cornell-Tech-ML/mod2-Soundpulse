@@ -12,6 +12,41 @@ def RParam(*shape):
     return minitorch.Parameter(r)
 
 # TODO: Implement for Task 2.5.
+class Network(minitorch.Module):
+    """A simple feedforward neural network with three linear layers."""
+    def __init__(self, hidden_layers):
+        super().__init__()
+        self.layer1 = Linear(2, hidden_layers)
+        self.layer2 = Linear(hidden_layers, hidden_layers)
+        self.layer3 = Linear(hidden_layers, 1)
+
+    def forward(self, x):
+        mid = self.layer1.forward(x).relu()
+        end = self.layer2.forward(mid).relu()
+        return self.layer3.forward(end).sigmoid()
+
+class Linear(minitorch.Module):
+    """Initializes a linear layer with weights and bias."""
+    def __init__(self, in_size, out_size):
+        super().__init__()
+        self.weights = RParam(in_size, out_size)
+        self.bias = RParam(out_size)
+
+    def forward(self, inputs):
+        """Computes the forward pass utilizing view and broadcasting to simulate MatMul."""
+        batch_size, in_size = inputs.shape
+        out_size = self.weights.value.shape[1]
+
+        x = inputs.view(batch_size, in_size, 1)
+        w = self.weights.value.view(1, in_size, out_size)
+        # shape: (b, i, o)
+        prod = x * w
+        # shape: (b, i, o) -> (b, 1, o) -> (b, o) + (1, o)
+        outputs = prod.sum(dim=1).view(batch_size, out_size) + self.bias.value
+
+        return outputs
+
+
 
 def default_log_fn(epoch, total_loss, correct, losses):
     print("Epoch ", epoch, " loss ", total_loss, "correct", correct)
