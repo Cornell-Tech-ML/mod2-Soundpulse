@@ -160,7 +160,7 @@ Epoch: 500/500, loss: 1.663579336115285, correct: 50
 PTS = 50
 HIDDEN = 10
 RATE = 0.5
-EPOCHS = 1000
+EPOCHS = 750
 
 #### Plots:
 ![Task2.5 Split](assets/img/split/split_plot.png)
