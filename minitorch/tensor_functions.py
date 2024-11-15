@@ -126,27 +126,16 @@ class Sum(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, dim: Optional[Tensor] = None) -> Tensor:
         """Computes the sum of the input tensor along the specified dimension."""
-        if dim is None:
-            dim_val = -1
-            ctx.save_for_backward(a, dim_val)
-            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
-        else:
-            dim_val = int(dim.item())
-            ctx.save_for_backward(a, dim_val)
-            return a.f.add_reduce(a, dim_val)
+        ctx.save_for_backward(a.shape, dim)
+        return a.f.add_reduce(a, int(dim.item()))
 
     @staticmethod
     def backward(
         ctx: Context, grad_output: Tensor
-    ) -> Union[Tuple[Tensor], Tuple[Tensor, float]]:
+    ) -> Tuple[Tensor, float]:
         """Computes the gradient for the sum operation."""
-        a: Tensor = ctx.saved_values[0]
-        dim_val: int = ctx.saved_values[1]
-
-        if dim_val == -1:
-            return (a.expand(grad_output),)
-        else:
-            return (a.expand(grad_output), 0.0)
+        a_shape, dim = ctx.saved_values
+        return grad_output, 0.0
 
 
 class Mul(Function):
@@ -159,7 +148,7 @@ class Mul(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for element-wise multiplication."""
-        t1, t2 = ctx.saved_tensors
+        t1, t2 = ctx.saved_values
         return (
             grad_output.f.mul_zip(grad_output, t2),
             grad_output.f.mul_zip(grad_output, t1),
@@ -177,17 +166,9 @@ class Sigmoid(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the sigmoid operation."""
-        sigma = ctx.saved_tensors[0]
-        ones = minitorch.Tensor.make(
-            [1.0] * int(operators.prod(sigma.shape)),
-            sigma.shape,
-            backend=grad_output.backend,
-        )
-        one_minus_sigma = sigma.f.add_zip(ones, sigma.f.neg_map(sigma))
+        sigma: Tensor = ctx.saved_values[0]
+        return sigma * (-sigma + 1.0) * grad_output
 
-        return grad_output.f.mul_zip(
-            grad_output.f.mul_zip(sigma, one_minus_sigma), grad_output
-        )
 
 
 class ReLU(Function):
@@ -200,7 +181,7 @@ class ReLU(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the ReLU operation."""
-        t1 = ctx.saved_tensors[0]
+        (t1,) = ctx.saved_values
         return grad_output.f.relu_back_zip(t1, grad_output)
 
 
@@ -214,7 +195,7 @@ class Log(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the log operation."""
-        t1 = ctx.saved_tensors[0]
+        (t1,) = ctx.saved_values
         return grad_output.f.log_back_zip(t1, grad_output)
 
 
@@ -229,7 +210,7 @@ class Exp(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Computes the gradient for the exp operation."""
-        exp_t1 = ctx.saved_tensors[0]
+        (exp_t1,) = ctx.saved_values
         return grad_output.f.mul_zip(grad_output, exp_t1)
 
 
@@ -237,31 +218,28 @@ class LT(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
         """Computes the element-wise less than comparison of two input tensors."""
-        ctx.save_for_backward(t1, t2)
+        ctx.save_for_backward(t1.shape, t2.shape)
         return t1.f.lt_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the lt operation."""
-        return (
-            grad_output.zeros(grad_output.shape),
-            grad_output.zeros(grad_output.shape),
-        )
+        a_shape, b_shape = ctx.saved_values
+        return zeros(a_shape), zeros(b_shape)
 
 
 class EQ(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
         """Computes the element-wise equality comparison of two input tensors."""
+        ctx.save_for_backward(t1.shape, t2.shape)
         return t1.f.eq_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         """Computes the gradient for the eq operation."""
-        return (
-            grad_output.zeros(grad_output.shape),
-            grad_output.zeros(grad_output.shape),
-        )
+        a_shape, b_shape = ctx.saved_values
+        return zeros(a_shape), zeros(b_shape)
 
 
 class IsClose(Function):
@@ -273,26 +251,22 @@ class IsClose(Function):
 
 class Permute(Function):
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, dims: Tensor) -> Tensor:
+    def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
         """Permutes the dimensions of the input tensor. Convert TensorData to Tensor."""
-        dims_tuple = tuple(int(d) for d in dims._tensor._storage)
-        ctx.save_for_backward(dims_tuple)
-        return t1._new(t1._tensor.permute(*dims_tuple))
+        ctx.save_for_backward(order)
+        return a._new(a._tensor.permute(*[int(order[i]) for i in range(order.size)]))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Computes the gradient for the permute operation."""
-        dims_tuple = ctx.saved_values[0]
-
-        # Reverse the permutation
-        reverse_dims = [0] * len(dims_tuple)
-        for i, dim in enumerate(dims_tuple):
-            reverse_dims[dim] = i
-
-        # Un-permute the gradients
-        grad_input = grad_output.permute(*reverse_dims)
-
-        return (grad_input, 0.0)
+        order: Tensor = ctx.saved_values[0]
+        order2: List[int] = [
+            a[0]
+            for a in sorted(
+                enumerate([order[i] for i in range(order.size)]), key=lambda a: a[1]
+            )
+        ]
+        return grad_output._new(grad_output._tensor.permute(*order2)), 0.0
 
 
 class View(Function):

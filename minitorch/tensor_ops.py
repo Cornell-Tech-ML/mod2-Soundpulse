@@ -13,6 +13,8 @@ from .tensor_data import (
     to_index,
 )
 
+MAX_DIMS = 32
+
 if TYPE_CHECKING:
     from .tensor import Tensor
     from .tensor_data import Index, Shape, Storage, Strides
@@ -273,18 +275,16 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        for ordinal in range(out.size):
-            in_index: Index = np.array([0] * len(in_shape), dtype=np.int32)
-            out_index: Index = np.array([0] * len(out_shape), dtype=np.int32)
-
-            to_index(ordinal, out_shape, out_index)
-            broadcast_index(out_index, out_shape, in_shape, in_index)
-            in_data = in_storage[index_to_position(in_index, in_strides)]
-
-            out[ordinal] = fn(in_data)
-
         # TODO: Implement for Task 2.3.
         # raise NotImplementedError("Need to implement for Task 2.3")
+        out_index: Index = np.zeros(MAX_DIMS, np.int16)
+        in_index: Index = np.zeros(MAX_DIMS, np.int16)
+        for i in range(len(out)):
+            to_index(i, out_shape, out_index)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            o = index_to_position(out_index, out_strides)
+            j = index_to_position(in_index, in_strides)
+            out[o] = fn(in_storage[j])
 
     return _map
 
@@ -330,23 +330,19 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # Assume out_shape is already the brodcasted shape
-        for ordinal in range(out.size):
-            a_index: Index = np.array([0] * len(a_shape), dtype=np.int32)
-            b_index: Index = np.array([0] * len(b_shape), dtype=np.int32)
-            out_index: Index = np.array([0] * len(out_shape), dtype=np.int32)
-
-            to_index(ordinal, out_shape, out_index)
-
-            broadcast_index(out_index, out_shape, a_shape, a_index)
-            broadcast_index(out_index, out_shape, b_shape, b_index)
-            a_data = a_storage[index_to_position(a_index, a_strides)]
-            b_data = b_storage[index_to_position(b_index, b_strides)]
-
-            out[ordinal] = fn(a_data, b_data)
-
         # TODO: Implement for Task 2.3.
         # raise NotImplementedError("Need to implement for Task 2.3")
+        out_index: Index = np.zeros(MAX_DIMS, np.int32)
+        a_index: Index = np.zeros(MAX_DIMS, np.int32)
+        b_index: Index = np.zeros(MAX_DIMS, np.int32)
+        for i in range(len(out)):
+            to_index(i, out_shape, out_index)
+            o = index_to_position(out_index, out_strides)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            j = index_to_position(a_index, a_strides)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            k = index_to_position(b_index, b_strides)
+            out[o] = fn(a_storage[j], b_storage[k])
 
     return _zip
 
@@ -378,27 +374,20 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        reduce_size = a_shape[reduce_dim]
-
-        for ordinal in range(out.size):
-            out_index: Index = np.array([0] * len(out_shape), dtype=np.int32)
-            to_index(ordinal, out_shape, out_index)
-
-            a_index = out_index.copy()
-            a_index[reduce_dim] = 0
-            total = a_storage[index_to_position(a_index, a_strides)]
-
-            for i in range(1, reduce_size):
-                a_index[reduce_dim] = i
-                a_ordinal = index_to_position(a_index, a_strides)
-                total = fn(total, a_storage[a_ordinal])
-
-            out[ordinal] = total
-
         # TODO: Implement for Task 2.3.
         # raise NotImplementedError("Need to implement for Task 2.3")
-
+        out_index: Index = np.zeros(MAX_DIMS, np.int32)
+        reduce_size = a_shape[reduce_dim]
+        for i in range(len(out)):
+            to_index(i, out_shape, out_index)
+            o = index_to_position(out_index, out_strides)
+            for s in range(reduce_size):
+                out_index[reduce_dim] = s
+                j = index_to_position(out_index, a_strides)
+                out[o] = fn(out[o], a_storage[j])
+                
     return _reduce
 
 
 SimpleBackend = TensorBackend(SimpleOps)
+

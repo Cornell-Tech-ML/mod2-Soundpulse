@@ -10,6 +10,7 @@ import numpy as np
 from . import operators
 from .autodiff import Context, Variable, backpropagate
 from .tensor_data import TensorData
+from minitorch import tensor
 
 # Comment these out if not yet implemented
 from .tensor_functions import (
@@ -309,7 +310,7 @@ class Tensor:
 
     def __sub__(self, b: TensorLike) -> Tensor:
         """Element-wise subtraction."""
-        return Add.apply(self, Neg.apply(self._ensure_tensor(b)))
+        return Add.apply(self, -self._ensure_tensor(b))
 
     def __mul__(self, b: TensorLike) -> Tensor:
         """Element-wise multiplication."""
@@ -339,9 +340,9 @@ class Tensor:
         """Reverse element-wise multiplication."""
         return self * b
 
-    def is_close(self, b: TensorLike) -> Tensor:
+    def is_close(self, y: Tensor) -> Tensor:
         """Element-wise comparison for near equality."""
-        return IsClose.apply(self, self._ensure_tensor(b))
+        return IsClose.apply(self, y)
 
     def sigmoid(self) -> Tensor:
         """Element-wise sigmoid function."""
@@ -362,16 +363,16 @@ class Tensor:
     def all(self, dim: Optional[int] = None) -> Tensor:
         """Returns True if all elements are True."""
         if dim is None:
-            return All.apply(self)
+            return All.apply(self.view(self.size), self._ensure_tensor(0))
         else:
-            return All.apply(self, Tensor.make([dim], (1,), backend=self.backend))
+            return All.apply(self, self._ensure_tensor(dim))
 
     def sum(self, dim: Optional[int] = None) -> Tensor:
         """Compute the sum along the specified dimension."""
         if dim is None:
-            return Sum.apply(self)
+            return Sum.apply(self.contiguous().view(self.size), self._ensure_tensor(0))
         else:
-            return Sum.apply(self, Tensor.make([dim], (1,), backend=self.backend))
+            return Sum.apply(self, self._ensure_tensor(dim))
 
     def mean(self, dim: Optional[int] = None) -> Tensor:
         """Compute the mean along the specified dimension."""
@@ -380,17 +381,13 @@ class Tensor:
         else:
             return self.sum(dim) / self.shape[dim]
 
-    def permute(self, *dims: int) -> Tensor:
+    def permute(self, *order: int) -> Tensor:
         """Permute the dimensions of the tensor."""
-        return Permute.apply(
-            self, Tensor.make(list(dims), (len(dims),), backend=self.backend)
-        )
+        return Permute.apply(self, tensor(list(order)))
 
     def view(self, *shape: int) -> Tensor:
         """Reshape the tensor to the specified shape."""
-        return View.apply(
-            self, Tensor.make(list(shape), (len(shape),), backend=self.backend)
-        )
+        return View.apply(self, tensor(list(shape)))
 
     def zero_grad_(self) -> None:
         """Resets the gradient to None."""

@@ -21,9 +21,9 @@ class Network(minitorch.Module):
         self.layer3 = Linear(hidden_layers, 1)
 
     def forward(self, x):
-        mid = self.layer1.forward(x).relu()
-        end = self.layer2.forward(mid).relu()
-        return self.layer3.forward(end).sigmoid()
+        h = self.layer1.forward(x).relu()
+        h = self.layer2.forward(h).relu()
+        return self.layer3.forward(h).sigmoid()
 
 class Linear(minitorch.Module):
     """Initializes a linear layer with weights and bias."""
@@ -31,21 +31,16 @@ class Linear(minitorch.Module):
         super().__init__()
         self.weights = RParam(in_size, out_size)
         self.bias = RParam(out_size)
+        self.out_size = out_size
 
-    def forward(self, inputs):
+    def forward(self, x):
         """Computes the forward pass utilizing view and broadcasting to simulate MatMul."""
-        batch_size, in_size = inputs.shape
-        out_size = self.weights.value.shape[1]
+        batch, in_size = x.shape
 
-        x = inputs.view(batch_size, in_size, 1)
-        w = self.weights.value.view(1, in_size, out_size)
-        # shape: (b, i, o)
-        prod = x * w
-        # shape: (b, i, o) -> (b, 1, o) -> (b, o) + (1, o)
-        outputs = prod.sum(dim=1).view(batch_size, out_size) + self.bias.value
-
-        return outputs
-
+        return (
+            self.weights.value.view(1, in_size, self.out_size)
+            * x.view(batch, in_size, 1)
+        ).sum(1).view(batch, self.out_size) + self.bias.value.view(self.out_size)
 
 
 def default_log_fn(epoch, total_loss, correct, losses):

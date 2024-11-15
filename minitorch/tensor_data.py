@@ -47,7 +47,10 @@ def index_to_position(index: Index, strides: Strides) -> int:
 
     """
     # TODO: Implement for Task 2.1.
-    return sum([idx * stride for idx, stride in zip(index, strides)])
+    position = 0
+    for ind, stride in zip(index, strides):
+        position += ind * stride
+    return position
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -64,11 +67,11 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # TODO: Implement for Task 2.1.
-    strides = strides_from_shape(list(shape))
-
-    for i in range(len(shape)):
-        out_index[i] = ordinal // strides[i]
-        ordinal = ordinal % strides[i]
+    cur_ord = ordinal + 0
+    for i in range(len(shape) - 1, -1, -1):
+        sh = shape[i]
+        out_index[i] = int(cur_ord % sh)
+        cur_ord = cur_ord // sh
 
 
 def broadcast_index(
@@ -92,22 +95,14 @@ def broadcast_index(
         None
 
     """
-    for i in range(len(shape)):
-        out_index[i] = 0
-
-    offset = len(big_shape) - len(shape)
-
-    for i in range(len(big_shape)):
-        if i >= offset:
-            # dim 1s will be brocasted
-            if shape[i - offset] == 1:
-                out_index[i - offset] = 0
-            else:
-                out_index[i - offset] = big_index[i]
-
     # TODO: Implement for Task 2.2.
     # raise NotImplementedError("Need to implement for Task 2.2")
-
+    for i, s in enumerate(shape):
+        if s > 1:
+            out_index[i] = big_index[i + (len(big_shape) - len(shape))]
+        else:
+            out_index[i] = 0
+    return None
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     """Broadcast two shapes to create a new union shape.
@@ -126,33 +121,25 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
 
     """
-    _shape1 = list(shape1)
-    _shape2 = list(shape2)
-    offset = len(_shape1) - len(_shape2)
-    final_shape = []
-
-    if offset > 0:
-        for i in range(offset):
-            _shape2.insert(0, 1)
-    else:
-        for i in range(-offset):
-            _shape1.insert(0, 1)
-
-    for i in range(len(_shape1)):
-        if _shape1[i] != _shape2[i]:
-            if _shape1[i] == 1:
-                final_shape.append(_shape2[i])
-            elif _shape2[i] == 1:
-                final_shape.append(_shape1[i])
-            else:
-                raise IndexingError("It cannot broadcast.")
-        else:
-            final_shape.append(_shape1[i])
-
-    return tuple(final_shape)
     # TODO: Implement for Task 2.2.
     # raise NotImplementedError("Need to implement for Task 2.2")
-
+    a, b = shape1, shape2
+    m = max(len(a), len(b))
+    c_rev = [0] * m
+    a_rev = list(reversed(a))
+    b_rev = list(reversed(b))
+    for i in range(m):
+        if i >= len(a):
+            c_rev[i] = b_rev[i]
+        elif i >= len(b):
+            c_rev[i] = a_rev[i]
+        else:
+            c_rev[i] = max(a_rev[i], b_rev[i])
+            if a_rev[i] != c_rev[i] and a_rev[i] != 1:
+                raise IndexingError(f"Broadcast failure {a} {b}")
+            if b_rev[i] != c_rev[i] and b_rev[i] != 1:
+                raise IndexingError(f"Broadcast failure {a} {b}")
+    return tuple(reversed(c_rev))
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
     """Return a contiguous stride for a shape"""
@@ -289,12 +276,13 @@ class TensorData:
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
         # TODO: Implement for Task 2.1.
-        shape_out = tuple([self.shape[o] for o in tuple(order)])
-        strides_out = tuple([self.strides[o] for o in tuple(order)])
-
-        return TensorData(self._storage, shape_out, strides_out)
         # raise NotImplementedError("Need to implement for Task 2.1")
-
+        return TensorData(
+            self._storage,
+            tuple([self.shape[o] for o in order]),
+            tuple([self._strides[o] for o in order])
+        )
+    
     def to_string(self) -> str:
         """Convert to string"""
         s = ""
